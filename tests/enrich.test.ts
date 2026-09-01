@@ -109,6 +109,17 @@ describe("substitutionsFor (level 3)", () => {
     }
   });
 
+  it("matches the repeating base cycle of a tiled progression", () => {
+    const repeated = [...detected, ...detected]; // 8 bars = 2× (I V vi IV)
+    const subs = substitutionsFor(repeated, cMajor, "hopeful");
+    expect(subs.length).toBeGreaterThan(0);
+    for (const sub of subs) {
+      expect(sub.chords).toHaveLength(8); // tiled back to the full length
+      expect(sub.chords[0].rootPc).toBe(0);
+      expect(sub.chords[4].rootPc).toBe(sub.chords[0].rootPc); // second cycle repeats
+    }
+  });
+
   it("never proposes the progression itself", () => {
     const subs = substitutionsFor(detected, cMajor, "hopeful");
     for (const sub of subs) {

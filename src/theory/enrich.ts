@@ -40,14 +40,31 @@ const QUALITY_FROM_LIBRARY = new Set([
   "maj", "min", "maj7", "min7", "dom7", "sus2", "sus4", "add9", "min9", "maj9",
 ]);
 
+// Songs repeat their progression; match the repeating base cycle, then tile
+// the substitution back over the full length.
+function baseCycle(detected: ChordSpec[]): ChordSpec[] {
+  for (let period = 2; period <= detected.length / 2; period++) {
+    if (detected.length % period !== 0) continue;
+    const repeats = detected.every(
+      (c, i) =>
+        c.rootPc === detected[i % period].rootPc && c.quality === detected[i % period].quality,
+    );
+    if (repeats) return detected.slice(0, period);
+  }
+  return detected;
+}
+
 // §8.3.2 level 3: library progressions in the same mode and length whose first
 // and last chords match, ranked by overlap with the chosen mood chip.
 export function substitutionsFor(
-  detected: ChordSpec[],
+  fullDetected: ChordSpec[],
   key: KeyInfo,
   mood: string,
 ): Substitution[] {
-  if (detected.length < 2) return [];
+  if (fullDetected.length < 2) return [];
+  const detected = baseCycle(fullDetected);
+  const tile = (chords: ChordSpec[]): ChordSpec[] =>
+    Array.from({ length: fullDetected.length }, (_, i) => chords[i % chords.length]);
   const numerals = detected.map((c) => numeralFor(c.rootPc, c.quality, key));
   const first = numerals[0]?.toLowerCase();
   const last = numerals[numerals.length - 1]?.toLowerCase();
@@ -77,7 +94,7 @@ export function substitutionsFor(
     if (identical) continue;
 
     const score = (p.tags.includes(mood) ? 10 : 0) + p.tags.length * 0.1;
-    scored.push({ score, sub: { id: p.id, tags: p.tags, chords } });
+    scored.push({ score, sub: { id: p.id, tags: p.tags, chords: tile(chords) } });
   }
   scored.sort((a, b) => b.score - a.score || a.sub.id.localeCompare(b.sub.id));
   return scored.slice(0, 3).map((s) => s.sub);
