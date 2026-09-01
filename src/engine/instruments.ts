@@ -87,6 +87,12 @@ export const PRESETS: Instrument[] = [
   },
 ];
 
+PRESETS.push(
+  // Game Boy CH3: duty macro = wave preset index (0 triangle-ish, 1 saw, 2 organ, 3 buzz)
+  { id: "wave-bass", name: "Wave Bass", kinds: ["wave"], volume: sustain(15), duty: sustain(0) },
+  { id: "organ", name: "Organ", kinds: ["wave"], volume: sustain(15), duty: sustain(2) },
+);
+
 export function getPreset(id: string): Instrument {
   const p = PRESETS.find((x) => x.id === id);
   if (!p) throw new Error(`Unknown instrument preset: ${id}`);

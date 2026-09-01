@@ -25,6 +25,25 @@ export function assignTrackToSlot(
   });
 }
 
+const TO_GB: Record<string, string> = { "tri-bass": "wave-bass", "tri-pluck": "wave-bass" };
+const TO_NES: Record<string, string> = { "wave-bass": "tri-bass", organ: "tri-bass" };
+
+// Chip switch keeps the arrangement sensible: tri↔wave slots and their
+// instruments swap; everything else carries over untouched.
+export function remapForChip(
+  tracks: TrackArrangement[],
+  chip: "nes" | "gb",
+): TrackArrangement[] {
+  const slotFrom = chip === "gb" ? "tri" : "wave";
+  const slotTo = chip === "gb" ? "wave" : "tri";
+  const instMap = chip === "gb" ? TO_GB : TO_NES;
+  return tracks.map((t) => ({
+    ...t,
+    slots: t.slots.map((s) => (s === slotFrom ? slotTo : s)),
+    instrumentId: instMap[t.instrumentId] ?? t.instrumentId,
+  }));
+}
+
 export function loopFrames(script: FrameScript, bars: [number, number]): [number, number] {
   const start = script.barStarts[Math.max(0, bars[0])] ?? 0;
   const end =

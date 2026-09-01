@@ -29,6 +29,7 @@ export type TrackArrangement = {
   mute: boolean;
   solo: boolean;
   layerMode?: LayerMode; // applies when two pulse slots + top/bottom (§7.6)
+  pan?: 0 | 1 | 2 | 3; // gb only: 1 = L, 2 = R, 3 = both (default)
   regions?: Region[]; // optional per-section overrides (M7)
 };
 
