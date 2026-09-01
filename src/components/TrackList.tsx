@@ -3,6 +3,7 @@ import { presetsForKind } from "../engine/instruments";
 import type { LayerMode, TrackArrangement } from "../engine/project";
 import type { SourceTrack } from "../engine/song";
 import { useStore } from "../store";
+import PianoRoll from "./PianoRoll";
 
 const CHIP_LABELS: Record<string, string> = { p1: "P1", p2: "P2", tri: "TRI", noise: "NOI" };
 
@@ -16,8 +17,10 @@ const LAYER_OPTIONS: { value: LayerMode; label: string }[] = [
   { value: "octave-down", label: "Octave ↓" },
 ];
 
-function TrackRow({ arr, src }: { arr: TrackArrangement; src: SourceTrack }) {
+function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack; index: number }) {
   const updateTrack = useStore((s) => s.updateTrack);
+  const setFocused = useStore((s) => s.setFocused);
+  const focused = useStore((s) => s.focusedIndex) === index;
   const warnings = useStore((s) => s.warnings).filter((w) => w.trackId === arr.id);
 
   const firstSlotDef = NES_PROFILE.channels.find((c) => c.id === arr.slots[0]);
@@ -43,10 +46,32 @@ function TrackRow({ arr, src }: { arr: TrackArrangement; src: SourceTrack }) {
   }
 
   return (
-    <div className="flex items-center gap-3 border-b border-zinc-800/60 px-4 py-2 text-sm">
-      <span className="w-36 truncate font-medium" title={src.name}>
+    <div
+      className={`flex items-center gap-3 border-b border-zinc-800/60 px-4 py-2 text-sm ${
+        focused ? "bg-zinc-900 ring-1 ring-inset ring-emerald-600" : ""
+      }`}
+    >
+      <span
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData("text/plain", arr.id);
+          e.dataTransfer.effectAllowed = "move";
+          setFocused(index);
+        }}
+        onClick={() => setFocused(index)}
+        title="Drag onto a rack card to assign"
+        className="cursor-grab text-zinc-600 hover:text-zinc-300 active:cursor-grabbing"
+      >
+        ⠿
+      </span>
+      <span
+        className="w-32 cursor-default truncate font-medium"
+        title={src.name}
+        onClick={() => setFocused(index)}
+      >
         {src.name}
       </span>
+      <PianoRoll src={src} />
       <span className="w-14 rounded bg-zinc-800 px-1.5 py-0.5 text-center font-mono text-[10px] text-zinc-400">
         {src.isDrums ? "drums" : `poly ${src.maxPolyphony}`}
       </span>
@@ -175,13 +200,14 @@ export default function TrackList() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      {project.tracks.map((arr) => {
+      {project.tracks.map((arr, index) => {
         const src = song.tracks[arr.sourceIndex];
-        return src ? <TrackRow key={arr.id} arr={arr} src={src} /> : null;
+        return src ? <TrackRow key={arr.id} arr={arr} src={src} index={index} /> : null;
       })}
       <p className="px-4 py-3 text-xs text-zinc-600">
-        Drop another .mid file anywhere to replace the song. Slot chips toggle channels; two pulse
-        slots + top/bottom unlocks layer modes.
+        Drag a track’s ⠿ handle onto a rack card (or click the slot chips). Click a thumbnail to
+        seek; drag on the bar ruler to loop. Keys: Space play · Home start · L loop · M/S on the
+        focused track · 1–9 focus.
       </p>
     </div>
   );

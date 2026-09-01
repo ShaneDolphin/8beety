@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import BarRuler from "./components/BarRuler";
+import ChipRack from "./components/ChipRack";
 import EmptyState from "./components/EmptyState";
 import Header from "./components/Header";
 import TrackList from "./components/TrackList";
@@ -28,11 +30,43 @@ export default function App() {
     };
   }, [loadMidi]);
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName)) return;
+      const s = useStore.getState();
+      if (!s.song || !s.project) return;
+
+      if (e.key === " ") {
+        e.preventDefault();
+        if (s.playing) s.pause();
+        else void s.play();
+      } else if (e.key === "Home") {
+        s.stop();
+      } else if (e.key === "l" || e.key === "L") {
+        s.toggleLoop();
+      } else if (/^[1-9]$/.test(e.key)) {
+        const index = Number(e.key) - 1;
+        if (index < s.project.tracks.length) s.setFocused(index);
+      } else if (e.key === "m" || e.key === "M" || e.key === "s" || e.key === "S") {
+        if (s.focusedIndex === null) return;
+        const track = s.project.tracks[s.focusedIndex];
+        if (!track) return;
+        if (e.key === "m" || e.key === "M") s.updateTrack(track.id, { mute: !track.mute });
+        else s.updateTrack(track.id, { solo: !track.solo });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100">
       {song ? (
         <>
           <Header />
+          <ChipRack />
+          <BarRuler />
           <TrackList />
         </>
       ) : (
