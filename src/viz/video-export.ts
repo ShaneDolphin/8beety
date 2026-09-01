@@ -77,11 +77,14 @@ export async function exportGbVideo(
   };
   const stream = new MediaStream([videoTrack, ...dest.stream.getAudioTracks()]);
   // Codec order matters for compatibility: generic "video/mp4" lets Chrome
-  // pick VP9-in-MP4, which QuickTime plays as audio-only. Ask for H.264+AAC
-  // explicitly first; only then fall back.
+  // pick VP9-in-MP4, which QuickTime plays as audio-only, and avc3 MP4s don't
+  // decode in QuickTime/AVFoundation at all. Ask for avc1 H.264+AAC with a
+  // level that covers 720x1280@30 (>= 3.1; 4.0 for headroom): requesting too
+  // low a level forces a mid-recording SPS level change, which glitches
+  // decoders that trust the initial out-of-band avcC header.
   const mime = [
-    'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
-    'video/mp4;codecs="avc1.4D401F,mp4a.40.2"',
+    'video/mp4;codecs="avc1.42E028,mp4a.40.2"',
+    'video/mp4;codecs="avc1.4D4028,mp4a.40.2"',
     "video/mp4",
     'video/webm;codecs=vp9,opus',
     "video/webm",
@@ -98,23 +101,54 @@ export async function exportGbVideo(
     rec.onstop = () => resolve();
   });
 
+  // Hidden tabs clamp main-thread timers to >=1s (Chromium throttling), which
+  // starves requestFrame and freezes the video while audio keeps recording.
+  // Dedicated-worker timers are exempt, so the tick source lives in a worker.
+  let stopTicks: () => void;
+  let onTick: () => void = () => undefined;
+  try {
+    const url = URL.createObjectURL(
+      new Blob(["setInterval(() => postMessage(0), 33);"], { type: "text/javascript" }),
+    );
+    const worker = new Worker(url);
+    URL.revokeObjectURL(url);
+    worker.onmessage = () => onTick();
+    stopTicks = () => worker.terminate();
+  } catch {
+    const iv = setInterval(() => onTick(), 33);
+    stopTicks = () => clearInterval(iv);
+  }
+
+  // Display sleep suspends everything mid-render; hold a screen wake lock for
+  // the duration (best effort — it can be denied or lost, and that's fine).
+  let wakeLock: { release(): Promise<void> } | undefined;
+  try {
+    wakeLock = await navigator.wakeLock?.request("screen");
+  } catch {
+    // unsupported or denied
+  }
+
   rec.start();
+  const startAt = actx.currentTime;
   source.start();
   videoTrack.requestFrame?.();
   const durationSec = buffer.duration;
   const t0 = performance.now();
   try {
     await new Promise<void>((resolve) => {
-      const iv = setInterval(() => {
-        const t = (performance.now() - t0) / 1000;
+      onTick = () => {
+        // Clock the frames off the audio being recorded, not wall time, so
+        // video stays locked to audio even when ticks jitter. Fall back to
+        // wall time if the context never got to run.
+        const t =
+          actx.state === "running"
+            ? actx.currentTime - startAt
+            : (performance.now() - t0) / 1000;
         drawFrame(Math.min(t * 60, script.frameCount - 1));
         videoTrack.requestFrame?.();
         onProgress(Math.min(1, t / durationSec));
-        if (t >= durationSec + 0.3) {
-          clearInterval(iv);
-          resolve();
-        }
-      }, 33);
+        if (t >= durationSec + 0.3) resolve();
+      };
     });
     rec.stop();
     try {
@@ -124,6 +158,8 @@ export async function exportGbVideo(
     }
     await stopped;
   } finally {
+    stopTicks();
+    void wakeLock?.release().catch(() => undefined);
     canvas.remove();
     void actx.close();
   }
