@@ -20,6 +20,8 @@ export default function Header() {
   const toggleGbView = useStore((s) => s.toggleGbView);
 
   const [showAbout, setShowAbout] = useState(false);
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const renameSong = useStore((s) => s.renameSong);
 
   if (!song || !project) return null;
 
@@ -28,9 +30,34 @@ export default function Header() {
   return (
     <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-800 bg-zinc-900 px-4 py-2">
       <PixelLogo className="h-4 w-auto shrink-0" />
-      <span className="max-w-48 truncate text-sm text-zinc-400" title={song.name}>
-        {song.name}
-      </span>
+      {editingName === null ? (
+        <button
+          className="max-w-48 truncate text-sm text-zinc-400 hover:text-zinc-200"
+          title="Click to rename"
+          onClick={() => setEditingName(song.name)}
+        >
+          {song.name}
+        </button>
+      ) : (
+        <input
+          autoFocus
+          value={editingName}
+          onChange={(e) => setEditingName(e.target.value)}
+          onBlur={() => {
+            renameSong(editingName);
+            setEditingName(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              renameSong(editingName);
+              setEditingName(null);
+            } else if (e.key === "Escape") {
+              setEditingName(null);
+            }
+          }}
+          className="w-48 rounded border border-zinc-700 bg-zinc-950 px-2 py-0.5 text-sm text-zinc-100"
+        />
+      )}
       <select
         value={project.chip === "gb" ? "gb" : "nes"}
         onChange={(e) => setChip(e.target.value as "nes" | "gb")}

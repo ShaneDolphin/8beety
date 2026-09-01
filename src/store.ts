@@ -34,6 +34,7 @@ type AppState = {
   focusedIndex: number | null;
 
   loadMidi: (data: Uint8Array, fileName: string) => void;
+  renameSong: (name: string) => void;
   loadDemo: (name?: string) => Promise<void>;
   loadProjectFile: (decoded: DecodedProjectFile) => void;
   buildProjectFile: (maxMidiBytes?: number) => { file: ProjectFile; midiOmitted: boolean } | null;
@@ -183,6 +184,13 @@ export const useStore = create<AppState>()((set, get) => {
       get().showToast(
         `Auto-arranged ${assignedCount} of ${song.tracks.length} tracks. Drag tracks onto the rack to change.`,
       );
+    },
+
+    renameSong: (name) => {
+      const { song } = get();
+      const trimmed = name.trim();
+      if (!song || trimmed === "") return;
+      set({ song: { ...song, name: trimmed } });
     },
 
     loadDemo: async (name = "adventure") => {

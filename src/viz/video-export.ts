@@ -52,9 +52,16 @@ export async function exportGbVideo(
     requestFrame?: () => void;
   };
   const stream = new MediaStream([videoTrack, ...dest.stream.getAudioTracks()]);
-  const mime = ["video/mp4", "video/webm;codecs=vp9,opus", "video/webm"].find((m) =>
-    MediaRecorder.isTypeSupported(m),
-  );
+  // Codec order matters for compatibility: generic "video/mp4" lets Chrome
+  // pick VP9-in-MP4, which QuickTime plays as audio-only. Ask for H.264+AAC
+  // explicitly first; only then fall back.
+  const mime = [
+    'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
+    'video/mp4;codecs="avc1.4D401F,mp4a.40.2"',
+    "video/mp4",
+    'video/webm;codecs=vp9,opus',
+    "video/webm",
+  ].find((m) => MediaRecorder.isTypeSupported(m));
   const rec = new MediaRecorder(stream, {
     ...(mime ? { mimeType: mime } : {}),
     videoBitsPerSecond: 4_000_000,
