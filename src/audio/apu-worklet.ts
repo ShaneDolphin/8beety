@@ -116,6 +116,121 @@ export class OnePoleLowPass {
   }
 }
 
+// ---- Game Boy DMG ----
+
+// GB LFSR: feedback = bit0 XOR bit1 into bit 14; 7-bit width mode mirrors the
+// feedback into bit 6 as well (the metallic mode). Seed 0x7fff.
+export function stepGbLfsr(reg: number, width7: boolean): number {
+  const x = (reg ^ (reg >> 1)) & 1;
+  let next = (reg >> 1) | (x << 14);
+  if (width7) next = (next & ~(1 << 6)) | (x << 6);
+  return next;
+}
+
+const wavegen = (fn: (i: number) => number): number[] =>
+  Array.from({ length: 32 }, (_, i) => Math.max(0, Math.min(15, Math.round(fn(i)))));
+
+// CH3 preset waves (§4.2): triangle-ish bass, saw-ish, organ, buzz.
+export const WAVE_PRESETS: number[][] = [
+  wavegen((i) => (i < 16 ? i : 31 - i)),
+  wavegen((i) => i / 2),
+  wavegen((i) => 7.5 + 5 * Math.sin((2 * Math.PI * i) / 32) + 2.5 * Math.sin((4 * Math.PI * i) / 32)),
+  wavegen((i) => ([15, 15, 15, 0, 15, 0, 0, 0] as const)[i % 8]),
+];
+
+// §4.2: hardware envelope steps are quantized to 64 Hz. Macro-driven volume
+// increases are register writes (immediate); decreases wait for the next tick.
+export class GbVolumeLatch {
+  private readonly perTick: number;
+  private count = 0;
+  private vol = 0;
+
+  constructor(sampleRate: number) {
+    this.perTick = sampleRate / 64;
+  }
+
+  next(requested: number): number {
+    if (requested > this.vol) {
+      this.vol = requested;
+      this.count = 0;
+    } else if (requested < this.vol) {
+      this.count++;
+      if (this.count >= this.perTick) {
+        this.count = 0;
+        this.vol = requested;
+      }
+    } else {
+      this.count = 0;
+    }
+    return this.vol;
+  }
+}
+
+export class GbPulseChannel {
+  private readonly sampleRate: number;
+  private readonly latch: GbVolumeLatch;
+  private phase = 0;
+
+  constructor(sampleRate: number) {
+    this.sampleRate = sampleRate;
+    this.latch = new GbVolumeLatch(sampleRate);
+  }
+
+  sample(period: number, volume: number, dutyIndex: number): number {
+    if (period === 0) return 0;
+    const vol = this.latch.next(volume);
+    if (vol === 0) return 0;
+    const freq = 131072 / (2048 - period);
+    this.phase = (this.phase + freq / this.sampleRate) % 1;
+    return this.phase < PULSE_DUTIES[dutyIndex] ? vol : 0;
+  }
+}
+
+export class GbWaveChannel {
+  private readonly sampleRate: number;
+  private phase = 0;
+
+  constructor(sampleRate: number) {
+    this.sampleRate = sampleRate;
+  }
+
+  // duty carries the wave preset index; volume quantizes to 100/50/25/off.
+  sample(period: number, volume: number, waveIndex: number): number {
+    if (period === 0 || volume === 0) return 0;
+    const freq = 65536 / (2048 - period);
+    this.phase = (this.phase + (freq * 32) / this.sampleRate) % 32;
+    const raw = WAVE_PRESETS[waveIndex & 3][Math.floor(this.phase)];
+    const scale = volume >= 12 ? 1 : volume >= 6 ? 0.5 : 0.25;
+    return raw * scale;
+  }
+}
+
+export class GbNoiseChannel {
+  private readonly sampleRate: number;
+  private readonly latch: GbVolumeLatch;
+  private lfsr = 0x7fff;
+  private acc = 0;
+
+  constructor(sampleRate: number) {
+    this.sampleRate = sampleRate;
+    this.latch = new GbVolumeLatch(sampleRate);
+  }
+
+  // Pragmatic v1: clocked like the NES table (rate = 1789773/period) so the
+  // chip-agnostic drum presets carry over; the GB divisor table can come later.
+  sample(period: number, volume: number, width7: boolean): number {
+    if (period === 0) return 0;
+    const vol = this.latch.next(volume);
+    if (vol === 0) return 0;
+    this.acc += NES_CPU_HZ / period / this.sampleRate;
+    while (this.acc >= 1) {
+      this.acc -= 1;
+      this.lfsr = stepGbLfsr(this.lfsr, width7);
+    }
+    return (this.lfsr & 1) === 0 ? vol : 0;
+  }
+}
+
 // The processor itself only exists inside a real AudioWorklet global scope;
 // the guard lets Node (Vitest) import the pure DSP above without crashing.
 if (typeof AudioWorkletProcessor !== "undefined") {
@@ -126,6 +241,7 @@ if (typeof AudioWorkletProcessor !== "undefined") {
     private samplesUntilFrame = 0;
     private loop: [number, number] | null = null;
     private framesSinceReport = 0;
+    private chip: "nes" | "gb" | "nes-vrc6" = "nes";
     private readonly pulse1 = new PulseChannel(sampleRate);
     private readonly pulse2 = new PulseChannel(sampleRate);
     private readonly tri = new TriangleChannel(sampleRate);
@@ -133,6 +249,12 @@ if (typeof AudioWorkletProcessor !== "undefined") {
     private readonly hp90 = new OnePoleHighPass(90, sampleRate);
     private readonly hp440 = new OnePoleHighPass(440, sampleRate);
     private readonly lp14k = new OnePoleLowPass(14000, sampleRate);
+    private readonly gbP1 = new GbPulseChannel(sampleRate);
+    private readonly gbP2 = new GbPulseChannel(sampleRate);
+    private readonly gbWave = new GbWaveChannel(sampleRate);
+    private readonly gbNoise = new GbNoiseChannel(sampleRate);
+    private readonly gbHpL = new OnePoleHighPass(90, sampleRate);
+    private readonly gbHpR = new OnePoleHighPass(90, sampleRate);
 
     constructor() {
       super();
@@ -143,6 +265,7 @@ if (typeof AudioWorkletProcessor !== "undefined") {
       switch (msg.type) {
         case "load":
           this.script = msg.script;
+          this.chip = msg.script.chip;
           this.frame = 0;
           this.samplesUntilFrame = sampleRate / 60;
           break;
@@ -163,6 +286,7 @@ if (typeof AudioWorkletProcessor !== "undefined") {
           break;
         case "hotSwap":
           this.script = msg.script;
+          this.chip = msg.script.chip;
           if (this.frame >= msg.script.frameCount) this.frame = 0;
           break;
       }
@@ -188,29 +312,52 @@ if (typeof AudioWorkletProcessor !== "undefined") {
     }
 
     process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
-      const out = outputs[0][0];
+      const outL = outputs[0][0];
+      const outR = outputs[0][1] ?? outputs[0][0];
       if (!this.script || !this.playing) {
-        out.fill(0);
+        outL.fill(0);
+        if (outR !== outL) outR.fill(0);
         return true;
       }
-      const [p1c, p2c, tric, noisec] = this.script.channels;
-      for (let i = 0; i < out.length; i++) {
+      const [ch0, ch1, ch2, ch3] = this.script.channels;
+      for (let i = 0; i < outL.length; i++) {
         if (this.samplesUntilFrame <= 0) {
           this.advanceFrame();
           this.samplesUntilFrame += sampleRate / 60;
           if (!this.playing) {
-            out.fill(0, i);
+            outL.fill(0, i);
+            if (outR !== outL) outR.fill(0, i);
             return true;
           }
         }
         this.samplesUntilFrame -= 1;
         const f = this.frame;
-        const s1 = this.pulse1.sample(p1c.period[f], p1c.volume[f], p1c.duty[f]);
-        const s2 = this.pulse2.sample(p2c.period[f], p2c.volume[f], p2c.duty[f]);
-        const st = this.tri.sample(tric.period[f], tric.volume[f] > 0);
-        const sn = this.noise.sample(noisec.period[f], noisec.volume[f], noisec.duty[f] === 1);
-        const mixed = nesMix(s1, s2, st, sn);
-        out[i] = this.lp14k.process(this.hp440.process(this.hp90.process(mixed)));
+        if (this.chip === "gb") {
+          const s1 = this.gbP1.sample(ch0.period[f], ch0.volume[f], ch0.duty[f]);
+          const s2 = this.gbP2.sample(ch1.period[f], ch1.volume[f], ch1.duty[f]);
+          const sw = this.gbWave.sample(ch2.period[f], ch2.volume[f], ch2.duty[f]);
+          const sn = this.gbNoise.sample(ch3.period[f], ch3.volume[f], ch3.duty[f] === 1);
+          const samples = [s1, s2, sw, sn];
+          const chans = [ch0, ch1, ch2, ch3];
+          let l = 0;
+          let r = 0;
+          for (let c = 0; c < 4; c++) {
+            const pan = chans[c].pan[f];
+            if (pan & 1) l += samples[c];
+            if (pan & 2) r += samples[c];
+          }
+          outL[i] = this.gbHpL.process((l / 60) * 0.9);
+          if (outR !== outL) outR[i] = this.gbHpR.process((r / 60) * 0.9);
+        } else {
+          const s1 = this.pulse1.sample(ch0.period[f], ch0.volume[f], ch0.duty[f]);
+          const s2 = this.pulse2.sample(ch1.period[f], ch1.volume[f], ch1.duty[f]);
+          const st = this.tri.sample(ch2.period[f], ch2.volume[f] > 0);
+          const sn = this.noise.sample(ch3.period[f], ch3.volume[f], ch3.duty[f] === 1);
+          const mixed = nesMix(s1, s2, st, sn);
+          const v = this.lp14k.process(this.hp440.process(this.hp90.process(mixed)));
+          outL[i] = v;
+          if (outR !== outL) outR[i] = v;
+        }
       }
       return true;
     }

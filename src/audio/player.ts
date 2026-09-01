@@ -11,7 +11,7 @@ export class ApuPlayer {
   async init(): Promise<void> {
     this.ctx = new AudioContext();
     await this.ctx.audioWorklet.addModule(apuWorkletUrl);
-    this.node = new AudioWorkletNode(this.ctx, "apu", { outputChannelCount: [1] });
+    this.node = new AudioWorkletNode(this.ctx, "apu", { outputChannelCount: [2] });
     this.node.port.onmessage = (e: MessageEvent<ApuReport>) => {
       if (e.data.type === "frame") this.onFrame?.(e.data.frame);
       else if (e.data.type === "ended") this.onEnded?.();
