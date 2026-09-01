@@ -1,0 +1,2424 @@
+{
+ "source": "ldrolez/free-midi-chords @ baf0896 2026-03-14, MIT",
+ "progressions": [
+  {
+   "id": "maj-0001",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "I",
+    "I",
+    "I",
+    "IV",
+    "IV",
+    "V",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "maj",
+    "maj",
+    "maj",
+    "maj",
+    "sus2"
+   ],
+   "tags": [
+    "joyful",
+    "triumphant"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "maj-0002",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "I",
+    "IV",
+    "iii"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0003",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "I",
+    "I",
+    "I"
+   ],
+   "qualities": [
+    "maj",
+    "dom7",
+    "dom7",
+    "dom7"
+   ],
+   "tags": [
+    "playful",
+    "relaxed"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0004",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "I",
+    "I",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "dom7",
+    "dom7",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "relaxed"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0005",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "iii",
+    "IV",
+    "vi"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0006",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "iii",
+    "vi",
+    "I"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "sus4"
+   ],
+   "tags": [
+    "spiritual",
+    "tender"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0007",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "iii",
+    "vi",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0008",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "IV",
+    "ii",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "joyful",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0009",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "IV",
+    "I",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "sus2",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "peaceful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0010",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "IV",
+    "V",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "joyful",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0011",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "IV",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "excited",
+    "joyful"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "maj-0012",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "IV",
+    "vi",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "joyful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0013",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "IV",
+    "vii",
+    "iii",
+    "vi",
+    "ii",
+    "V",
+    "I"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "min",
+    "min",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "romantic",
+    "triumphant"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "maj-0014",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "I",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "joyful",
+    "playful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0015",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "IV",
+    "vi"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0016",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "vi",
+    "ii"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0017",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "vi",
+    "iii",
+    "IV",
+    "I",
+    "IV",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "min",
+    "maj",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "joyful"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "maj-0018",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "vi",
+    "iii",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "joyful"
+   ],
+   "bars": 5
+  },
+  {
+   "id": "maj-0019",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "vi",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0020",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "vi",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0021",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "vi",
+    "I",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "tender"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0022",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "vi",
+    "ii",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "tender"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0023",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "vi",
+    "ii",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0024",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "vi",
+    "IV",
+    "iii"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0025",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "vi",
+    "IV",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0026",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "V",
+    "vi",
+    "IV"
+   ],
+   "qualities": [
+    "dom7",
+    "dom7",
+    "min9",
+    "dom7"
+   ],
+   "tags": [
+    "joyful",
+    "playful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0027",
+   "mode": "major",
+   "numerals": [
+    "ii",
+    "IV",
+    "V"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "maj-0028",
+   "mode": "major",
+   "numerals": [
+    "ii",
+    "IV",
+    "vi",
+    "V"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0029",
+   "mode": "major",
+   "numerals": [
+    "ii",
+    "V",
+    "I"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "triumphant"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "maj-0030",
+   "mode": "major",
+   "numerals": [
+    "ii",
+    "V",
+    "I",
+    "IV"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0031",
+   "mode": "major",
+   "numerals": [
+    "ii",
+    "V",
+    "I"
+   ],
+   "qualities": [
+    "min7",
+    "add9",
+    "dom7"
+   ],
+   "tags": [
+    "triumphant"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "maj-0032",
+   "mode": "major",
+   "numerals": [
+    "iii",
+    "vi",
+    "IV",
+    "I"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0033",
+   "mode": "major",
+   "numerals": [
+    "ii",
+    "V",
+    "iii",
+    "vi",
+    "ii",
+    "V"
+   ],
+   "qualities": [
+    "min7",
+    "dom7",
+    "min7",
+    "min7",
+    "min7",
+    "dom7"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 6
+  },
+  {
+   "id": "maj-0034",
+   "mode": "major",
+   "numerals": [
+    "I",
+    "I",
+    "vi",
+    "vi"
+   ],
+   "qualities": [
+    "sus2",
+    "maj",
+    "min7",
+    "sus4"
+   ],
+   "tags": [
+    "playful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0035",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "I",
+    "ii",
+    "vi"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "nostalgic",
+    "peaceful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0036",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "I",
+    "iii",
+    "IV"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "joyful",
+    "playful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0037",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "I",
+    "IV",
+    "I"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "add9"
+   ],
+   "tags": [
+    "joyful",
+    "relaxed"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0038",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "I",
+    "V",
+    "vi"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "joyful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0039",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "IV",
+    "I",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "joyful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0040",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "vi",
+    "I",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0041",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "vi",
+    "iii",
+    "I"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "playful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0042",
+   "mode": "major",
+   "numerals": [
+    "IV",
+    "vi",
+    "IV",
+    "vi"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0043",
+   "mode": "major",
+   "numerals": [
+    "V",
+    "I",
+    "vi",
+    "V"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0044",
+   "mode": "major",
+   "numerals": [
+    "V",
+    "IV",
+    "vi",
+    "I"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0045",
+   "mode": "major",
+   "numerals": [
+    "V",
+    "vi",
+    "IV",
+    "I"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0046",
+   "mode": "major",
+   "numerals": [
+    "vi",
+    "ii",
+    "V",
+    "I"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0047",
+   "mode": "major",
+   "numerals": [
+    "vi",
+    "IV",
+    "I",
+    "V"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0048",
+   "mode": "major",
+   "numerals": [
+    "vi",
+    "IV",
+    "iii",
+    "V"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "maj-0049",
+   "mode": "major",
+   "numerals": [
+    "vi",
+    "V",
+    "IV",
+    "V",
+    "ii",
+    "V",
+    "I",
+    "I"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj",
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "triumphant"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "maj-0050",
+   "mode": "major",
+   "numerals": [
+    "vi",
+    "V",
+    "IV",
+    "V"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0001",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "i",
+    "iv",
+    "iv",
+    "v",
+    "ii",
+    "v",
+    "v"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "min",
+    "min7",
+    "min",
+    "min",
+    "min7"
+   ],
+   "tags": [
+    "dark",
+    "mysterious"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0002",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "ii",
+    "v",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0003",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "III",
+    "iv",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0004",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "III",
+    "VII",
+    "iv"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "empowered",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0005",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "III",
+    "VII",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0006",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "ii",
+    "v",
+    "III",
+    "i",
+    "ii",
+    "v",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "maj",
+    "min",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "dramatic",
+    "mysterious"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0007",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "iv",
+    "III",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0008",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "iv",
+    "v",
+    "iv"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0009",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "iv",
+    "v"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "lonely",
+    "sad"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "min-0010",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "iv",
+    "VI",
+    "v"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0011",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "iv",
+    "VII",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "nostalgic",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0012",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "iv",
+    "VII",
+    "v",
+    "i",
+    "i",
+    "ii",
+    "V"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "maj",
+    "min",
+    "min",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "mysterious",
+    "surprised"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0013",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "v",
+    "iv",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "rebellious",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0014",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "v",
+    "iv",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "dark",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0015",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "III",
+    "VII",
+    "i",
+    "VI",
+    "III",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj",
+    "min",
+    "maj",
+    "dom7",
+    "maj"
+   ],
+   "tags": [
+    "mysterious",
+    "spiritual"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0016",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "III",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0017",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "iv",
+    "ii"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "sad",
+    "tender"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0018",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "iv",
+    "III"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0019",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "iv",
+    "v"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0020",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "VII",
+    "iv"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0021",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "VII",
+    "v"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "rebellious"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0022",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "rebellious",
+    "triumphant"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "min-0023",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "i",
+    "v",
+    "III",
+    "VII",
+    "i",
+    "v",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "min",
+    "maj",
+    "maj",
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "surprised"
+   ],
+   "bars": 9
+  },
+  {
+   "id": "min-0024",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "i",
+    "v"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0025",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "III",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "rebellious",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0026",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "v",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "mysterious"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0027",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "VI",
+    "III",
+    "iv",
+    "VI",
+    "VII",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj",
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "surprised"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0028",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "VI",
+    "III"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0029",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "VI",
+    "iv"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "romantic",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0030",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "VI",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "rebellious",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0031",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "VI",
+    "VII",
+    "i",
+    "v",
+    "VI",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "add9",
+    "maj",
+    "min",
+    "min",
+    "maj",
+    "sus4"
+   ],
+   "tags": [
+    "nostalgic",
+    "sad"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0032",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VI",
+    "III",
+    "VII",
+    "i",
+    "i",
+    "III",
+    "iv"
+   ],
+   "qualities": [
+    "min7",
+    "maj",
+    "dom7",
+    "maj",
+    "min",
+    "min7",
+    "dom7",
+    "min7"
+   ],
+   "tags": [
+    "dark",
+    "nostalgic"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0033",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "VII",
+    "VI",
+    "iv"
+   ],
+   "qualities": [
+    "min7",
+    "maj",
+    "dom7",
+    "min7"
+   ],
+   "tags": [
+    "nostalgic",
+    "romantic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0034",
+   "mode": "minor",
+   "numerals": [
+    "ii",
+    "v",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "peaceful"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "min-0035",
+   "mode": "minor",
+   "numerals": [
+    "ii",
+    "v",
+    "i",
+    "iv"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "nostalgic",
+    "peaceful"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0036",
+   "mode": "minor",
+   "numerals": [
+    "ii",
+    "VI",
+    "i",
+    "iv"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0037",
+   "mode": "minor",
+   "numerals": [
+    "i",
+    "iv",
+    "v",
+    "i"
+   ],
+   "qualities": [
+    "min7",
+    "sus4",
+    "min7",
+    "sus4"
+   ],
+   "tags": [
+    "mysterious",
+    "tender"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0038",
+   "mode": "minor",
+   "numerals": [
+    "iv",
+    "i",
+    "v",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0039",
+   "mode": "minor",
+   "numerals": [
+    "iv",
+    "III",
+    "VII",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "mysterious",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0040",
+   "mode": "minor",
+   "numerals": [
+    "iv",
+    "III",
+    "v",
+    "VI",
+    "iv",
+    "i",
+    "III",
+    "VI"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "sus4",
+    "maj",
+    "min",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "mysterious",
+    "nostalgic"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0041",
+   "mode": "minor",
+   "numerals": [
+    "iv",
+    "v",
+    "VI",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "maj",
+    "maj"
+   ],
+   "tags": [
+    "mysterious",
+    "rebellious"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0042",
+   "mode": "minor",
+   "numerals": [
+    "iv",
+    "VI",
+    "v",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "mysterious"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0043",
+   "mode": "minor",
+   "numerals": [
+    "iv",
+    "VI",
+    "VII",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0044",
+   "mode": "minor",
+   "numerals": [
+    "v",
+    "i",
+    "iv",
+    "VII"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "dark",
+    "rebellious"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0045",
+   "mode": "minor",
+   "numerals": [
+    "v",
+    "iv",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "lonely"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "min-0046",
+   "mode": "minor",
+   "numerals": [
+    "v",
+    "VI",
+    "III",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0047",
+   "mode": "minor",
+   "numerals": [
+    "v",
+    "VI",
+    "v",
+    "i"
+   ],
+   "qualities": [
+    "min",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "sad"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0048",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "i",
+    "v",
+    "III"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0049",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "i",
+    "v"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "sad"
+   ],
+   "bars": 3
+  },
+  {
+   "id": "min-0050",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "III",
+    "i",
+    "v"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "dark",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0051",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "iv",
+    "i",
+    "v"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "hopeful",
+    "tender"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0052",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "VI",
+    "i",
+    "VII"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "empowered"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0053",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "VII",
+    "i",
+    "III"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "triumphant"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0054",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "VII",
+    "v",
+    "III"
+   ],
+   "qualities": [
+    "maj",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "nostalgic",
+    "rebellious"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0055",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "VII",
+    "i",
+    "v",
+    "VI",
+    "VII",
+    "i",
+    "iv"
+   ],
+   "qualities": [
+    "dom7",
+    "maj",
+    "min",
+    "min",
+    "dom7",
+    "maj",
+    "min",
+    "min7"
+   ],
+   "tags": [
+    "empowered",
+    "nostalgic"
+   ],
+   "bars": 8
+  },
+  {
+   "id": "min-0056",
+   "mode": "minor",
+   "numerals": [
+    "VI",
+    "VII",
+    "i",
+    "VII"
+   ],
+   "qualities": [
+    "dom7",
+    "maj",
+    "min",
+    "maj"
+   ],
+   "tags": [
+    "hopeful",
+    "nostalgic"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0057",
+   "mode": "minor",
+   "numerals": [
+    "VII",
+    "iv",
+    "v",
+    "i"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "min",
+    "min"
+   ],
+   "tags": [
+    "dark",
+    "mysterious"
+   ],
+   "bars": 4
+  },
+  {
+   "id": "min-0058",
+   "mode": "minor",
+   "numerals": [
+    "VII",
+    "iv",
+    "VII",
+    "i"
+   ],
+   "qualities": [
+    "maj",
+    "min",
+    "maj",
+    "min"
+   ],
+   "tags": [
+    "spiritual"
+   ],
+   "bars": 4
+  }
+ ],
+ "voicings": {
+  "maj": [
+   0,
+   4,
+   7
+  ],
+  "min": [
+   0,
+   3,
+   7
+  ],
+  "maj7": [
+   0,
+   4,
+   7,
+   11
+  ],
+  "min7": [
+   0,
+   3,
+   7,
+   10
+  ],
+  "dom7": [
+   0,
+   4,
+   7,
+   10
+  ],
+  "sus2": [
+   0,
+   2,
+   7
+  ],
+  "sus4": [
+   0,
+   5,
+   7
+  ],
+  "add9": [
+   0,
+   4,
+   7,
+   14
+  ],
+  "min9": [
+   0,
+   3,
+   7,
+   10,
+   14
+  ],
+  "maj9": [
+   0,
+   4,
+   7,
+   11,
+   14
+  ]
+ }
+}
