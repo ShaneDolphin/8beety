@@ -36,6 +36,11 @@ export class ApuPlayer {
     this.post({ type: "seek", frame });
   }
 
+  // Replace the script mid-playback, keeping the current frame position.
+  hotSwap(script: FrameScript): void {
+    this.post({ type: "hotSwap", script });
+  }
+
   private post(msg: ApuMessage): void {
     this.node?.port.postMessage(msg);
   }
