@@ -28,7 +28,7 @@ export function encodeWav(channels: Float32Array[], sampleRate: number): ArrayBu
   for (let i = 0; i < frames; i++) {
     for (let c = 0; c < numChannels; c++) {
       const s = Math.max(-1, Math.min(1, channels[c][i]));
-      v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      v.setInt16(off, Math.round(s < 0 ? s * 0x8000 : s * 0x7fff), true);
       off += 2;
     }
   }
