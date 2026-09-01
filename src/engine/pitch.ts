@@ -25,3 +25,24 @@ export function nesTriangleTimer(freq: number): number | null {
 export function nesTriangleFreq(timer: number): number {
   return NES_CPU_HZ / (32 * (timer + 1));
 }
+
+// Game Boy 11-bit period registers: higher x = higher pitch.
+export function gbPulsePeriod(freq: number): number | null {
+  const x = Math.round(2048 - 131072 / freq);
+  if (x < 0 || x > 2047) return null;
+  return x;
+}
+
+export function gbPulseFreq(x: number): number {
+  return 131072 / (2048 - x);
+}
+
+export function gbWavePeriod(freq: number): number | null {
+  const x = Math.round(2048 - 65536 / freq);
+  if (x < 0 || x > 2047) return null;
+  return x;
+}
+
+export function gbWaveFreq(x: number): number {
+  return 65536 / (2048 - x);
+}
