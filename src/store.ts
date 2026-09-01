@@ -6,11 +6,18 @@ import { PROFILES } from "./engine/chip-profiles";
 import type { FrameScript } from "./engine/frame-script";
 import { parseMidi } from "./engine/midi-import";
 import { autoArrange } from "./engine/auto-arrange";
+import {
+  encodeProjectFile,
+  type DecodedProjectFile,
+  type ProjectFile,
+} from "./engine/project-io";
 import { defaultProject, type Project, type TrackArrangement } from "./engine/project";
 import type { Song } from "./engine/song";
 
 type AppState = {
   song: Song | null;
+  midiBytes: Uint8Array | null;
+  midiName: string | null;
   project: Project | null;
   script: FrameScript | null;
   warnings: CompileWarning[];
@@ -24,6 +31,8 @@ type AppState = {
 
   loadMidi: (data: Uint8Array, fileName: string) => void;
   loadDemo: () => Promise<void>;
+  loadProjectFile: (decoded: DecodedProjectFile) => void;
+  buildProjectFile: (maxMidiBytes?: number) => { file: ProjectFile; midiOmitted: boolean } | null;
   setBpm: (bpm: number) => void;
   setChip: (chip: "nes" | "gb") => void;
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
@@ -69,6 +78,8 @@ export const useStore = create<AppState>()((set, get) => {
 
   return {
     song: null,
+    midiBytes: null,
+    midiName: null,
     project: null,
     script: null,
     warnings: [],
@@ -85,6 +96,8 @@ export const useStore = create<AppState>()((set, get) => {
       const project = defaultProject(song);
       set({
         song,
+        midiBytes: data,
+        midiName: fileName,
         project,
         frame: 0,
         playing: false,
@@ -107,6 +120,53 @@ export const useStore = create<AppState>()((set, get) => {
       const res = await fetch("/demo-midis/demo.mid");
       const buf = new Uint8Array(await res.arrayBuffer());
       get().loadMidi(buf, "demo.mid");
+    },
+
+    loadProjectFile: (decoded) => {
+      const state = get();
+      let song = state.song;
+      let midiBytes = state.midiBytes;
+      let midiName = state.midiName;
+      if (decoded.midiBytes) {
+        midiBytes = decoded.midiBytes;
+        midiName = decoded.midiName ?? "shared.mid";
+        song = parseMidi(midiBytes, midiName);
+      }
+      if (!song) {
+        get().showToast("This project has no embedded MIDI — load the .mid file first, then the project.");
+        return;
+      }
+      const tracks = decoded.project.tracks.filter((t) => t.sourceIndex < song.tracks.length);
+      set({
+        song,
+        midiBytes,
+        midiName,
+        project: { ...decoded.project, tracks },
+        frame: 0,
+        playing: false,
+        loopBars: null,
+        savedLoopBars: null,
+        focusedIndex: null,
+      });
+      if (playerReady) {
+        player.pause();
+        player.seek(0);
+      }
+      recompileNow();
+      get().showToast("Project loaded.");
+    },
+
+    buildProjectFile: (maxMidiBytes) => {
+      const { project, midiBytes, midiName } = get();
+      if (!project) return null;
+      const embed =
+        midiBytes && (maxMidiBytes === undefined || midiBytes.length <= maxMidiBytes)
+          ? midiBytes
+          : null;
+      return {
+        file: encodeProjectFile(project, embed, embed ? midiName : null),
+        midiOmitted: midiBytes !== null && embed === null,
+      };
     },
 
     setBpm: (bpm) => {

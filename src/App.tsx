@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { decodeProjectFile } from "./engine/project-io";
+import { decodeShare } from "./engine/share";
 import BarRuler from "./components/BarRuler";
 import ChipRack from "./components/ChipRack";
 import EmptyState from "./components/EmptyState";
@@ -18,8 +20,18 @@ export default function App() {
     async function onDrop(e: DragEvent) {
       e.preventDefault();
       const file = e.dataTransfer?.files[0];
-      if (!file || !/\.midi?$/i.test(file.name)) return;
-      loadMidi(new Uint8Array(await file.arrayBuffer()), file.name);
+      if (!file) return;
+      if (/\.midi?$/i.test(file.name)) {
+        loadMidi(new Uint8Array(await file.arrayBuffer()), file.name);
+      } else if (/\.json$/i.test(file.name)) {
+        try {
+          const decoded = decodeProjectFile(JSON.parse(await file.text()));
+          if (decoded) useStore.getState().loadProjectFile(decoded);
+          else useStore.getState().showToast("Not a valid Chiptune Composer project file.");
+        } catch {
+          useStore.getState().showToast("Not a valid Chiptune Composer project file.");
+        }
+      }
     }
     const drop = (e: DragEvent) => void onDrop(e);
     window.addEventListener("dragover", onDragOver);
@@ -29,6 +41,15 @@ export default function App() {
       window.removeEventListener("drop", drop);
     };
   }, [loadMidi]);
+
+  useEffect(() => {
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash.startsWith("p=")) {
+      const decoded = decodeShare(hash);
+      if (decoded) useStore.getState().loadProjectFile(decoded);
+      else useStore.getState().showToast("Could not read the shared link.");
+    }
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

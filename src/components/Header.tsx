@@ -1,4 +1,5 @@
 import { useStore } from "../store";
+import ExportMenu from "./ExportMenu";
 
 export default function Header() {
   const song = useStore((s) => s.song);
@@ -79,9 +80,12 @@ export default function Header() {
         </button>
       </div>
 
-      <span className="ml-auto font-mono text-xs text-zinc-500">
-        bar {bar} · frame {frame}
-      </span>
+      <div className="ml-auto flex items-center gap-3">
+        <ExportMenu />
+        <span className="font-mono text-xs text-zinc-500">
+          bar {bar} · frame {frame}
+        </span>
+      </div>
     </header>
   );
 }

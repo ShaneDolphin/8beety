@@ -1,14 +1,27 @@
 import { useRef } from "react";
+import { decodeProjectFile } from "../engine/project-io";
 import { useStore } from "../store";
 
 export default function EmptyState() {
   const loadMidi = useStore((s) => s.loadMidi);
   const loadDemo = useStore((s) => s.loadDemo);
+  const loadProjectFile = useStore((s) => s.loadProjectFile);
+  const showToast = useStore((s) => s.showToast);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function onPick(files: FileList | null) {
     const file = files?.[0];
     if (!file) return;
+    if (/\.json$/i.test(file.name)) {
+      try {
+        const decoded = decodeProjectFile(JSON.parse(await file.text()));
+        if (decoded) loadProjectFile(decoded);
+        else showToast("Not a valid Chiptune Composer project file.");
+      } catch {
+        showToast("Not a valid Chiptune Composer project file.");
+      }
+      return;
+    }
     loadMidi(new Uint8Array(await file.arrayBuffer()), file.name);
   }
 
@@ -32,7 +45,7 @@ export default function EmptyState() {
       <input
         ref={inputRef}
         type="file"
-        accept=".mid,.midi,audio/midi"
+        accept=".mid,.midi,.json,audio/midi,application/json"
         className="hidden"
         onChange={(e) => void onPick(e.target.files)}
       />
