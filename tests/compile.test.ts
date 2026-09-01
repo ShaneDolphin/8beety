@@ -200,12 +200,13 @@ describe("track processing", () => {
     expect(channel(script, "p1").period[0]).toBe(507); // A3 = 220 Hz → timer 507
   });
 
-  it("skips drum tracks (GM drum map is M3)", () => {
+  it("renders drum tracks on the noise channel via the GM map", () => {
     const s = song([
       srcTrack(0, [{ tick: 0, durationTicks: PPQ, midi: 38, velocity: 100 }], { isDrums: true }),
     ]);
     const { script } = compile(s, project([arrangement({ slots: ["noise"] })]), NES_PROFILE);
-    expect(channel(script, "noise").volume[0]).toBe(0);
+    expect(channel(script, "noise").volume[0]).toBe(15); // snare attack
+    expect(channel(script, "noise").period[0]).toBe(160);
   });
 });
 

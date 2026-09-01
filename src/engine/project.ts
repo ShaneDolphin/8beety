@@ -4,6 +4,9 @@ import type { Song } from "./song";
 
 export type PolyMode = "top" | "bottom" | "arp" | "split";
 
+// §7.6: how the second pulse slot doubles the first (two pulse slots, top/bottom).
+export type LayerMode = "double" | "detune" | "echo3" | "echo6" | "echo9" | "octave-up" | "octave-down";
+
 export type Region = {
   startBar: number;
   endBar: number; // exclusive
@@ -25,6 +28,7 @@ export type TrackArrangement = {
   volume: number; // 0–15 scale factor applied to the macro
   mute: boolean;
   solo: boolean;
+  layerMode?: LayerMode; // applies when two pulse slots + top/bottom (§7.6)
   regions?: Region[]; // optional per-section overrides (M7)
 };
 

@@ -74,6 +74,9 @@ export const PRESETS: Instrument[] = [
     // The triangle has no volume, so "pluck" means a short gate: 8 frames on, then off.
     volume: { values: [15, 15, 15, 15, 15, 15, 15, 15, 0] },
   },
+  // Chords: the compiler generates the arpeggio from the chord tones (§7.7);
+  // this preset only supplies the tone. Speed comes from arpFramesPerStep.
+  { id: "arp-chord", name: "Arp Chord", kinds: ["pulse"], volume: sustain(10), duty: sustain(1) },
   {
     id: "pulse-bass",
     name: "Pulse Bass",
