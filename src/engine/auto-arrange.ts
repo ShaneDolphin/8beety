@@ -22,15 +22,32 @@ function baseArrangement(t: SourceTrack): TrackArrangement {
   };
 }
 
-// SPEC §10.1 heuristic, minus the arp-chord step (arp polyMode lands in M3):
-// highest mean pitch + low polyphony → Pulse 1 / Square Lead; next melodic →
-// Pulse 2 / Thin Lead; lowest mean pitch non-drum → Triangle / Tri Bass
-// (bottom). Drums and everything else stay unassigned.
+// SPEC §10.1: lead → Pulse 1 / Square Lead; next melodic → Pulse 2 / Thin
+// Lead; lowest non-drum → Triangle / Tri Bass (bottom); a drum track →
+// Noise; most polyphonic remaining → Pulse 2 with Arp Chord if still free.
+// Special case: a lone polyphonic track is spread across tri/p1/p2 (split).
 export function autoArrange(song: Song): { tracks: TrackArrangement[]; assignedCount: number } {
   const arrangements = song.tracks.map(baseArrangement);
   const byIndex = new Map(arrangements.map((a) => [a.sourceIndex, a]));
   const melodic = song.tracks.filter((t) => !t.isDrums);
   const taken = new Set<number>();
+
+  const drums = song.tracks.find((t) => t.isDrums);
+  if (drums) {
+    const a = byIndex.get(drums.index)!;
+    a.slots = ["noise"];
+    taken.add(drums.index);
+  }
+
+  if (melodic.length === 1 && melodic[0].maxPolyphony >= 3) {
+    // Piano-only: lowest note → triangle bass, next → p1, overflow arps on p2.
+    const a = byIndex.get(melodic[0].index)!;
+    a.slots = ["tri", "p1", "p2"];
+    a.polyMode = "split";
+    a.instrumentId = "arp-chord";
+    taken.add(melodic[0].index);
+    return { tracks: arrangements, assignedCount: taken.size };
+  }
 
   const lowPoly = melodic.filter((t) => t.maxPolyphony <= 2);
   const leadPool = lowPoly.length > 0 ? lowPoly : melodic;
@@ -53,7 +70,7 @@ export function autoArrange(song: Song): { tracks: TrackArrangement[]; assignedC
     taken.add(bass.index);
   }
 
-  const secondPool = melodic.filter((t) => !taken.has(t.index));
+  const secondPool = melodic.filter((t) => !taken.has(t.index) && t.maxPolyphony <= 2);
   const second = [...secondPool].sort((a, b) => meanPitch(b) - meanPitch(a))[0];
   if (second) {
     const a = byIndex.get(second.index)!;
@@ -61,6 +78,18 @@ export function autoArrange(song: Song): { tracks: TrackArrangement[]; assignedC
     a.instrumentId = "thin-lead";
     a.polyMode = "top";
     taken.add(second.index);
+  }
+
+  if (!second) {
+    const chordPool = melodic.filter((t) => !taken.has(t.index) && t.maxPolyphony >= 2);
+    const chords = [...chordPool].sort((a, b) => b.maxPolyphony - a.maxPolyphony)[0];
+    if (chords) {
+      const a = byIndex.get(chords.index)!;
+      a.slots = ["p2"];
+      a.instrumentId = "arp-chord";
+      a.polyMode = "arp";
+      taken.add(chords.index);
+    }
   }
 
   return { tracks: arrangements, assignedCount: taken.size };

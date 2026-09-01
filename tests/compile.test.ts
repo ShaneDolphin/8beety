@@ -259,7 +259,7 @@ describe("compile snapshots (3 fixture MIDIs)", () => {
     expect(digest(script)).toMatchSnapshot();
   });
 
-  it("fixture B: block chords resolved by top/bottom", () => {
+  it("fixture B: block chords auto-arranged as split across tri/p1/p2", () => {
     const data = midiBytes((m) => {
       m.header.setTempo(100);
       const piano = m.addTrack();

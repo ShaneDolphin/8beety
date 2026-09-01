@@ -60,8 +60,34 @@ describe("autoArrange", () => {
     expect(byIndex(0).slots).toEqual(["tri"]);
     expect(byIndex(0).instrumentId).toBe("tri-bass");
     expect(byIndex(0).polyMode).toBe("bottom");
-    expect(byIndex(3).slots).toEqual([]); // drums wait for M3
-    expect(assignedCount).toBe(3);
+    expect(byIndex(3).slots).toEqual(["noise"]); // drums land on the noise channel
+    expect(assignedCount).toBe(4);
+  });
+
+  it("fills a free Pulse 2 with the most polyphonic remaining track as Arp Chord", () => {
+    const s = song([
+      track(0, "Tune", [72, 74]),
+      track(1, "Bass", [36, 38]),
+      track(2, "Pads", [60, 62], { maxPolyphony: 4, notes: notesAt([60, 62], 4) }),
+    ]);
+    const { tracks } = autoArrange(s);
+    const byIndex = (i: number) => tracks.find((t) => t.sourceIndex === i)!;
+    expect(byIndex(0).slots).toEqual(["p1"]);
+    expect(byIndex(1).slots).toEqual(["tri"]);
+    expect(byIndex(2).slots).toEqual(["p2"]);
+    expect(byIndex(2).instrumentId).toBe("arp-chord");
+    expect(byIndex(2).polyMode).toBe("arp");
+  });
+
+  it("spreads a lone polyphonic track across tri/p1/p2 with split (piano-only case)", () => {
+    const s = song([
+      track(0, "Piano", [48, 60, 64], { maxPolyphony: 4, notes: notesAt([48, 52], 4) }),
+    ]);
+    const { tracks, assignedCount } = autoArrange(s);
+    expect(tracks[0].slots).toEqual(["tri", "p1", "p2"]);
+    expect(tracks[0].polyMode).toBe("split");
+    expect(tracks[0].instrumentId).toBe("arp-chord");
+    expect(assignedCount).toBe(1);
   });
 
   it("with one melodic track, assigns only p1", () => {
