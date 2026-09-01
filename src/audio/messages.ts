@@ -8,4 +8,7 @@ export type ApuMessage =
   | { type: "setLoop"; loop: [number, number] | null }
   | { type: "hotSwap"; script: FrameScript };
 
-export type ApuReport = { type: "frame"; frame: number } | { type: "ended" };
+export type ApuReport =
+  | { type: "frame"; frame: number }
+  | { type: "ended" }
+  | { type: "loaded" }; // ack for the offline renderer's handshake

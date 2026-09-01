@@ -231,134 +231,196 @@ export class GbNoiseChannel {
   }
 }
 
+// The full chip engine, shared verbatim by the realtime processor and the
+// offline WAV renderer (and instantiable under Node for parity tests). It
+// must not touch worklet globals; the sample rate always comes in here.
+export class ApuCore {
+  playing = false;
+  frame = 0;
+  onFrameAdvance?: (frame: number) => void;
+  onEnded?: () => void;
+
+  private readonly sampleRate: number;
+  private script: FrameScript | null = null;
+  private chip: "nes" | "gb" | "nes-vrc6" = "nes";
+  private samplesUntilFrame = 0;
+  private loop: [number, number] | null = null;
+  private readonly pulse1: PulseChannel;
+  private readonly pulse2: PulseChannel;
+  private readonly tri: TriangleChannel;
+  private readonly noise: NoiseChannel;
+  private readonly hp90: OnePoleHighPass;
+  private readonly hp440: OnePoleHighPass;
+  private readonly lp14k: OnePoleLowPass;
+  private readonly gbP1: GbPulseChannel;
+  private readonly gbP2: GbPulseChannel;
+  private readonly gbWave: GbWaveChannel;
+  private readonly gbNoise: GbNoiseChannel;
+  private readonly gbHpL: OnePoleHighPass;
+  private readonly gbHpR: OnePoleHighPass;
+
+  constructor(sampleRate: number) {
+    this.sampleRate = sampleRate;
+    this.pulse1 = new PulseChannel(sampleRate);
+    this.pulse2 = new PulseChannel(sampleRate);
+    this.tri = new TriangleChannel(sampleRate);
+    this.noise = new NoiseChannel(sampleRate);
+    this.hp90 = new OnePoleHighPass(90, sampleRate);
+    this.hp440 = new OnePoleHighPass(440, sampleRate);
+    this.lp14k = new OnePoleLowPass(14000, sampleRate);
+    this.gbP1 = new GbPulseChannel(sampleRate);
+    this.gbP2 = new GbPulseChannel(sampleRate);
+    this.gbWave = new GbWaveChannel(sampleRate);
+    this.gbNoise = new GbNoiseChannel(sampleRate);
+    this.gbHpL = new OnePoleHighPass(90, sampleRate);
+    this.gbHpR = new OnePoleHighPass(90, sampleRate);
+  }
+
+  load(script: FrameScript): void {
+    this.script = script;
+    this.chip = script.chip;
+    this.frame = 0;
+    this.samplesUntilFrame = this.sampleRate / 60;
+  }
+
+  play(fromFrame?: number): void {
+    if (fromFrame !== undefined) this.frame = fromFrame;
+    this.samplesUntilFrame = this.sampleRate / 60;
+    this.playing = true;
+  }
+
+  pause(): void {
+    this.playing = false;
+  }
+
+  seek(frame: number): void {
+    this.frame = frame;
+    this.samplesUntilFrame = this.sampleRate / 60;
+  }
+
+  setLoop(loop: [number, number] | null): void {
+    this.loop = loop;
+  }
+
+  hotSwap(script: FrameScript): void {
+    this.script = script;
+    this.chip = script.chip;
+    if (this.frame >= script.frameCount) this.frame = 0;
+  }
+
+  private advanceFrame(): void {
+    this.frame++;
+    if (this.loop && this.frame >= this.loop[1]) this.frame = this.loop[0];
+    if (this.script && this.frame >= this.script.frameCount) {
+      this.playing = false;
+      this.frame = 0;
+      this.onEnded?.();
+      return;
+    }
+    this.onFrameAdvance?.(this.frame);
+  }
+
+  // Renders into outL (and outR when given), continuing from internal state.
+  render(outL: Float32Array, outR: Float32Array | null): void {
+    if (!this.script || !this.playing) {
+      outL.fill(0);
+      outR?.fill(0);
+      return;
+    }
+    const [ch0, ch1, ch2, ch3] = this.script.channels;
+    for (let i = 0; i < outL.length; i++) {
+      if (this.samplesUntilFrame <= 0) {
+        this.advanceFrame();
+        this.samplesUntilFrame += this.sampleRate / 60;
+        if (!this.playing) {
+          outL.fill(0, i);
+          outR?.fill(0, i);
+          return;
+        }
+      }
+      this.samplesUntilFrame -= 1;
+      const f = this.frame;
+      if (this.chip === "gb") {
+        const s1 = this.gbP1.sample(ch0.period[f], ch0.volume[f], ch0.duty[f]);
+        const s2 = this.gbP2.sample(ch1.period[f], ch1.volume[f], ch1.duty[f]);
+        const sw = this.gbWave.sample(ch2.period[f], ch2.volume[f], ch2.duty[f]);
+        const sn = this.gbNoise.sample(ch3.period[f], ch3.volume[f], ch3.duty[f] === 1);
+        const samples = [s1, s2, sw, sn];
+        const chans = [ch0, ch1, ch2, ch3];
+        let l = 0;
+        let r = 0;
+        for (let c = 0; c < 4; c++) {
+          const pan = chans[c].pan[f];
+          if (pan & 1) l += samples[c];
+          if (pan & 2) r += samples[c];
+        }
+        outL[i] = this.gbHpL.process((l / 60) * 0.9);
+        if (outR) outR[i] = this.gbHpR.process((r / 60) * 0.9);
+      } else {
+        const s1 = this.pulse1.sample(ch0.period[f], ch0.volume[f], ch0.duty[f]);
+        const s2 = this.pulse2.sample(ch1.period[f], ch1.volume[f], ch1.duty[f]);
+        const st = this.tri.sample(ch2.period[f], ch2.volume[f] > 0);
+        const sn = this.noise.sample(ch3.period[f], ch3.volume[f], ch3.duty[f] === 1);
+        const mixed = nesMix(s1, s2, st, sn);
+        const v = this.lp14k.process(this.hp440.process(this.hp90.process(mixed)));
+        outL[i] = v;
+        if (outR) outR[i] = v;
+      }
+    }
+  }
+}
+
 // The processor itself only exists inside a real AudioWorklet global scope;
 // the guard lets Node (Vitest) import the pure DSP above without crashing.
 if (typeof AudioWorkletProcessor !== "undefined") {
   class ApuProcessor extends AudioWorkletProcessor {
-    private script: FrameScript | null = null;
-    private playing = false;
-    private frame = 0;
-    private samplesUntilFrame = 0;
-    private loop: [number, number] | null = null;
+    private readonly core = new ApuCore(sampleRate);
     private framesSinceReport = 0;
-    private chip: "nes" | "gb" | "nes-vrc6" = "nes";
-    private readonly pulse1 = new PulseChannel(sampleRate);
-    private readonly pulse2 = new PulseChannel(sampleRate);
-    private readonly tri = new TriangleChannel(sampleRate);
-    private readonly noise = new NoiseChannel(sampleRate);
-    private readonly hp90 = new OnePoleHighPass(90, sampleRate);
-    private readonly hp440 = new OnePoleHighPass(440, sampleRate);
-    private readonly lp14k = new OnePoleLowPass(14000, sampleRate);
-    private readonly gbP1 = new GbPulseChannel(sampleRate);
-    private readonly gbP2 = new GbPulseChannel(sampleRate);
-    private readonly gbWave = new GbWaveChannel(sampleRate);
-    private readonly gbNoise = new GbNoiseChannel(sampleRate);
-    private readonly gbHpL = new OnePoleHighPass(90, sampleRate);
-    private readonly gbHpR = new OnePoleHighPass(90, sampleRate);
 
     constructor() {
       super();
+      this.core.onFrameAdvance = (frame) => {
+        if (++this.framesSinceReport >= 4) {
+          this.framesSinceReport = 0;
+          this.post({ type: "frame", frame });
+        }
+      };
+      this.core.onEnded = () => this.post({ type: "ended" });
       this.port.onmessage = (e: MessageEvent<ApuMessage>) => this.onMessage(e.data);
-    }
-
-    private onMessage(msg: ApuMessage): void {
-      switch (msg.type) {
-        case "load":
-          this.script = msg.script;
-          this.chip = msg.script.chip;
-          this.frame = 0;
-          this.samplesUntilFrame = sampleRate / 60;
-          break;
-        case "play":
-          if (msg.fromFrame !== undefined) this.frame = msg.fromFrame;
-          this.samplesUntilFrame = sampleRate / 60;
-          this.playing = true;
-          break;
-        case "pause":
-          this.playing = false;
-          break;
-        case "seek":
-          this.frame = msg.frame;
-          this.samplesUntilFrame = sampleRate / 60;
-          break;
-        case "setLoop":
-          this.loop = msg.loop;
-          break;
-        case "hotSwap":
-          this.script = msg.script;
-          this.chip = msg.script.chip;
-          if (this.frame >= msg.script.frameCount) this.frame = 0;
-          break;
-      }
     }
 
     private post(report: ApuReport): void {
       this.port.postMessage(report);
     }
 
-    private advanceFrame(): void {
-      this.frame++;
-      if (this.loop && this.frame >= this.loop[1]) this.frame = this.loop[0];
-      if (this.script && this.frame >= this.script.frameCount) {
-        this.playing = false;
-        this.frame = 0;
-        this.post({ type: "ended" });
-        return;
-      }
-      if (++this.framesSinceReport >= 4) {
-        this.framesSinceReport = 0;
-        this.post({ type: "frame", frame: this.frame });
+    private onMessage(msg: ApuMessage): void {
+      switch (msg.type) {
+        case "load":
+          this.core.load(msg.script);
+          this.post({ type: "loaded" }); // offline render awaits this ack
+          break;
+        case "play":
+          this.core.play(msg.fromFrame);
+          break;
+        case "pause":
+          this.core.pause();
+          break;
+        case "seek":
+          this.core.seek(msg.frame);
+          break;
+        case "setLoop":
+          this.core.setLoop(msg.loop);
+          break;
+        case "hotSwap":
+          this.core.hotSwap(msg.script);
+          break;
       }
     }
 
     process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
       const outL = outputs[0][0];
-      const outR = outputs[0][1] ?? outputs[0][0];
-      if (!this.script || !this.playing) {
-        outL.fill(0);
-        if (outR !== outL) outR.fill(0);
-        return true;
-      }
-      const [ch0, ch1, ch2, ch3] = this.script.channels;
-      for (let i = 0; i < outL.length; i++) {
-        if (this.samplesUntilFrame <= 0) {
-          this.advanceFrame();
-          this.samplesUntilFrame += sampleRate / 60;
-          if (!this.playing) {
-            outL.fill(0, i);
-            if (outR !== outL) outR.fill(0, i);
-            return true;
-          }
-        }
-        this.samplesUntilFrame -= 1;
-        const f = this.frame;
-        if (this.chip === "gb") {
-          const s1 = this.gbP1.sample(ch0.period[f], ch0.volume[f], ch0.duty[f]);
-          const s2 = this.gbP2.sample(ch1.period[f], ch1.volume[f], ch1.duty[f]);
-          const sw = this.gbWave.sample(ch2.period[f], ch2.volume[f], ch2.duty[f]);
-          const sn = this.gbNoise.sample(ch3.period[f], ch3.volume[f], ch3.duty[f] === 1);
-          const samples = [s1, s2, sw, sn];
-          const chans = [ch0, ch1, ch2, ch3];
-          let l = 0;
-          let r = 0;
-          for (let c = 0; c < 4; c++) {
-            const pan = chans[c].pan[f];
-            if (pan & 1) l += samples[c];
-            if (pan & 2) r += samples[c];
-          }
-          outL[i] = this.gbHpL.process((l / 60) * 0.9);
-          if (outR !== outL) outR[i] = this.gbHpR.process((r / 60) * 0.9);
-        } else {
-          const s1 = this.pulse1.sample(ch0.period[f], ch0.volume[f], ch0.duty[f]);
-          const s2 = this.pulse2.sample(ch1.period[f], ch1.volume[f], ch1.duty[f]);
-          const st = this.tri.sample(ch2.period[f], ch2.volume[f] > 0);
-          const sn = this.noise.sample(ch3.period[f], ch3.volume[f], ch3.duty[f] === 1);
-          const mixed = nesMix(s1, s2, st, sn);
-          const v = this.lp14k.process(this.hp440.process(this.hp90.process(mixed)));
-          outL[i] = v;
-          if (outR !== outL) outR[i] = v;
-        }
-      }
+      const outR = outputs[0][1] && outputs[0][1] !== outL ? outputs[0][1] : null;
+      this.core.render(outL, outR);
       return true;
     }
   }
