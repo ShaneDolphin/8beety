@@ -1,11 +1,17 @@
-import { NES_PROFILE } from "../engine/chip-profiles";
+import { PROFILES } from "../engine/chip-profiles";
 import { presetsForKind } from "../engine/instruments";
 import type { LayerMode, TrackArrangement } from "../engine/project";
 import type { SourceTrack } from "../engine/song";
 import { useStore } from "../store";
 import PianoRoll from "./PianoRoll";
 
-const CHIP_LABELS: Record<string, string> = { p1: "P1", p2: "P2", tri: "TRI", noise: "NOI" };
+const CHIP_LABELS: Record<string, string> = {
+  p1: "P1",
+  p2: "P2",
+  tri: "TRI",
+  wave: "WAV",
+  noise: "NOI",
+};
 
 const LAYER_OPTIONS: { value: LayerMode; label: string }[] = [
   { value: "double", label: "Double" },
@@ -22,8 +28,10 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
   const setFocused = useStore((s) => s.setFocused);
   const focused = useStore((s) => s.focusedIndex) === index;
   const warnings = useStore((s) => s.warnings).filter((w) => w.trackId === arr.id);
+  const chip = useStore((s) => s.project?.chip) === "gb" ? "gb" : "nes";
+  const profile = PROFILES[chip];
 
-  const firstSlotDef = NES_PROFILE.channels.find((c) => c.id === arr.slots[0]);
+  const firstSlotDef = profile.channels.find((c) => c.id === arr.slots[0]);
   const presets = firstSlotDef ? presetsForKind(firstSlotDef.kind) : [];
   const pulseSlots = arr.slots.filter((id) => id === "p1" || id === "p2");
   const layerable =
@@ -77,7 +85,7 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
       </span>
 
       <div className="flex gap-1">
-        {NES_PROFILE.channels.map((c) => {
+        {profile.channels.map((c) => {
           const on = arr.slots.includes(c.id);
           const order = arr.slots.indexOf(c.id);
           return (
@@ -163,6 +171,21 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
             </select>
           )}
         </>
+      )}
+
+      {chip === "gb" && arr.slots.length > 0 && (
+        <select
+          value={arr.pan ?? 3}
+          title="Stereo pan (hard L / both / hard R)"
+          onChange={(e) =>
+            updateTrack(arr.id, { pan: Number(e.target.value) as TrackArrangement["pan"] })
+          }
+          className="rounded border border-zinc-700 bg-zinc-950 px-1 py-1 font-mono text-xs"
+        >
+          <option value={1}>L</option>
+          <option value={3}>LR</option>
+          <option value={2}>R</option>
+        </select>
       )}
 
       <button

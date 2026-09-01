@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ChannelDef } from "../engine/chip-profiles";
-import { NES_PROFILE } from "../engine/chip-profiles";
+import { PROFILES } from "../engine/chip-profiles";
 import { PRESETS } from "../engine/instruments";
 import { useStore } from "../store";
 
@@ -55,9 +55,10 @@ function RackCard({ def }: { def: ChannelDef }) {
 export default function ChipRack() {
   const project = useStore((s) => s.project);
   if (!project) return null;
+  const profile = PROFILES[project.chip === "gb" ? "gb" : "nes"];
   return (
     <div className="flex gap-2 border-b border-zinc-800 bg-zinc-900/60 px-4 py-2">
-      {NES_PROFILE.channels.map((c) => (
+      {profile.channels.map((c) => (
         <RackCard key={c.id} def={c} />
       ))}
     </div>

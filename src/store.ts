@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { ApuPlayer } from "./audio/player";
-import { assignTrackToSlot, loopFrames } from "./engine/arrange-ops";
+import { assignTrackToSlot, loopFrames, remapForChip } from "./engine/arrange-ops";
 import { compile, type CompileWarning } from "./engine/compile";
-import { NES_PROFILE } from "./engine/chip-profiles";
+import { PROFILES } from "./engine/chip-profiles";
 import type { FrameScript } from "./engine/frame-script";
 import { parseMidi } from "./engine/midi-import";
 import { autoArrange } from "./engine/auto-arrange";
@@ -25,6 +25,7 @@ type AppState = {
   loadMidi: (data: Uint8Array, fileName: string) => void;
   loadDemo: () => Promise<void>;
   setBpm: (bpm: number) => void;
+  setChip: (chip: "nes" | "gb") => void;
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
   assignToSlot: (trackId: string, slotId: string) => void;
   play: () => Promise<void>;
@@ -52,7 +53,8 @@ export const useStore = create<AppState>()((set, get) => {
     const { song, project } = get();
     if (!song || !project) return;
     const t0 = performance.now();
-    const { script, warnings } = compile(song, project, NES_PROFILE);
+    const profile = PROFILES[project.chip === "gb" ? "gb" : "nes"];
+    const { script, warnings } = compile(song, project, profile);
     const compileMs = performance.now() - t0;
     if (import.meta.env.DEV) console.log(`compile: ${compileMs.toFixed(1)} ms`);
     set({ script, warnings, compileMs });
@@ -112,6 +114,13 @@ export const useStore = create<AppState>()((set, get) => {
       if (!project) return;
       const clamped = Math.min(300, Math.max(40, Math.round(bpm)));
       set({ project: { ...project, bpm: clamped } });
+      scheduleCompile();
+    },
+
+    setChip: (chip) => {
+      const { project } = get();
+      if (!project || project.chip === chip) return;
+      set({ project: { ...project, chip, tracks: remapForChip(project.tracks, chip) } });
       scheduleCompile();
     },
 
