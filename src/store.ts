@@ -33,7 +33,7 @@ type AppState = {
   focusedIndex: number | null;
 
   loadMidi: (data: Uint8Array, fileName: string) => void;
-  loadDemo: () => Promise<void>;
+  loadDemo: (name?: string) => Promise<void>;
   loadProjectFile: (decoded: DecodedProjectFile) => void;
   buildProjectFile: (maxMidiBytes?: number) => { file: ProjectFile; midiOmitted: boolean } | null;
   setBpm: (bpm: number) => void;
@@ -160,10 +160,11 @@ export const useStore = create<AppState>()((set, get) => {
       );
     },
 
-    loadDemo: async () => {
-      const res = await fetch("/demo-midis/demo.mid");
+    loadDemo: async (name = "adventure") => {
+      const file = `demo-${name}.mid`;
+      const res = await fetch(`/demo-midis/${file}`);
       const buf = new Uint8Array(await res.arrayBuffer());
-      get().loadMidi(buf, "demo.mid");
+      get().loadMidi(buf, file);
     },
 
     loadProjectFile: (decoded) => {

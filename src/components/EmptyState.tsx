@@ -36,12 +36,24 @@ export default function EmptyState() {
         Drop a .mid file anywhere
         <span className="mt-1 block text-xs text-zinc-600">or click to browse</span>
       </button>
-      <button
-        onClick={() => void loadDemo()}
-        className="rounded bg-emerald-600 px-5 py-2 font-mono text-sm hover:bg-emerald-500"
-      >
-        Try a demo
-      </button>
+      <div className="flex flex-col items-center gap-2">
+        <span className="text-xs uppercase tracking-wide text-zinc-600">Try a demo</span>
+        <div className="flex flex-wrap justify-center gap-2">
+          {[
+            { name: "adventure", label: "🗺 Adventure" },
+            { name: "dungeon", label: "🕯 Dungeon" },
+            { name: "boss", label: "⚔ Boss Fight" },
+          ].map((d) => (
+            <button
+              key={d.name}
+              onClick={() => void loadDemo(d.name)}
+              className="rounded bg-emerald-600 px-4 py-2 font-mono text-sm hover:bg-emerald-500"
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <input
         ref={inputRef}
         type="file"
