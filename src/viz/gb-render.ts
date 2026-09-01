@@ -56,6 +56,7 @@ export function drawGbFrame(
   w: number,
   h: number,
   title: string,
+  opts?: { headerTitle?: boolean },
 ): void {
   const [c0, c1, c2, c3] = DMG;
   const px = Math.max(2, Math.floor(Math.min(w / 160, h / 160)));
@@ -68,9 +69,11 @@ export function drawGbFrame(
   g.fillStyle = c3;
   g.font = `bold ${px * 7}px Quantico, monospace`;
   g.fillText("8BEETY", px * 4, px * 3);
-  g.fillStyle = c2;
-  g.font = `${px * 4}px Quantico, monospace`;
-  g.fillText(title.replace(/\.midi?$/i, "").slice(0, 32).toUpperCase(), px * 4, px * 11);
+  if (opts?.headerTitle !== false) {
+    g.fillStyle = c2;
+    g.font = `${px * 4}px Quantico, monospace`;
+    g.fillText(title.replace(/\.midi?$/i, "").slice(0, 32).toUpperCase(), px * 4, px * 11);
+  }
   const bar = script.barStarts.filter((b) => b <= frame).length;
   g.textAlign = "right";
   g.font = `bold ${px * 5}px Quantico, monospace`;

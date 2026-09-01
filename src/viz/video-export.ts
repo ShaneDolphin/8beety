@@ -1,5 +1,6 @@
 import type { FrameScript } from "../engine/frame-script";
 import { drawGbFrame } from "./gb-render";
+import { drawGbShell } from "./gb-shell";
 import type { Lane } from "./lanes";
 
 // 9:16 Game Boy View video: the offline-rendered song audio plays into a
@@ -30,7 +31,30 @@ export async function exportGbVideo(
     canvas.remove();
     throw new Error("canvas unavailable");
   }
-  drawGbFrame(g, script, lanes, 0, W, H, title);
+
+  // The handheld shell is static; render it once offscreen, then each frame
+  // blit it and draw the scrolling playthrough clipped into its screen. The
+  // bezel carries the song title, so the in-screen header title is off.
+  const shell = document.createElement("canvas");
+  shell.width = W;
+  shell.height = H;
+  const shellCtx = shell.getContext("2d");
+  if (!shellCtx) {
+    canvas.remove();
+    throw new Error("canvas unavailable");
+  }
+  const screen = drawGbShell(shellCtx, W, H, title);
+  const drawFrame = (frame: number): void => {
+    g.drawImage(shell, 0, 0);
+    g.save();
+    g.beginPath();
+    g.rect(screen.x, screen.y, screen.w, screen.h);
+    g.clip();
+    g.translate(screen.x, screen.y);
+    drawGbFrame(g, script, lanes, frame, screen.w, screen.h, title, { headerTitle: false });
+    g.restore();
+  };
+  drawFrame(0);
 
   const actx = new AudioContext();
   // resume() stays pending without user activation; never let it block the
@@ -83,7 +107,7 @@ export async function exportGbVideo(
     await new Promise<void>((resolve) => {
       const iv = setInterval(() => {
         const t = (performance.now() - t0) / 1000;
-        drawGbFrame(g, script, lanes, Math.min(t * 60, script.frameCount - 1), W, H, title);
+        drawFrame(Math.min(t * 60, script.frameCount - 1));
         videoTrack.requestFrame?.();
         onProgress(Math.min(1, t / durationSec));
         if (t >= durationSec + 0.3) {
