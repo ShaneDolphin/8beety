@@ -1,32 +1,69 @@
-# React + TypeScript + Vite
+# Chiptune Composer
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Turn any MIDI file into music that sounds like it came out of an NES or a Game Boy — in your
+browser, in seconds, with no login and no server.
 
-Currently, two official plugins are available:
+![Chiptune Composer](docs/img/screenshot.jpg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Drop in a `.mid`, and the auto-arranger assigns your tracks to real chip channels: melodies to the
+pulse channels, bass to the triangle (or the Game Boy's wavetable), drums to the noise LFSR. Chords
+become fast arpeggios — the way NES composers actually did it — and everything is compiled to a
+frame-by-frame register script played by an authentic sound model in an AudioWorklet.
 
-## React Compiler
+**Try it:** https://app-drab-six-81.vercel.app
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the Oxlint configuration
+- **Two chips**: NES 2A03 (nonlinear mixer, console output filter, authentic timer-quantized
+  detune) and Game Boy DMG (four wavetable presets, 64 Hz envelope quantization, true stereo with
+  per-channel hard pan). Switch mid-playback.
+- **Polyphony done the 8-bit way**: top/bottom note extraction, compiler-generated arpeggios with
+  chord-tone reduction, split-across-channels mode, and pulse-layer modes (double, detune, echo,
+  octave).
+- **A real GM drum map** onto the noise channel: kick, snare, three tom tiers, hats, crash, ride,
+  metal hit — priority-resolved like the originals.
+- **FamiTracker-style instruments**: per-frame volume/duty/pitch/arpeggio macros, plus quick
+  tweaks (duty, attack/decay, vibrato) without a macro editor.
+- **Regions**: split a track at any bar and give bars 17–32 a different instrument, channel, or
+  poly mode.
+- **Chord Assist**: detects your key and chords, enriches triads with diatonic 7ths/9ths/sus, and
+  offers substitute progressions from the
+  [free-midi-chords](https://github.com/ldrolez/free-midi-chords) corpus, voiced for the chip.
+- **Export & share**: 16-bit WAV (44.1/48 kHz, optional loop 2× + fade, sample-identical to
+  playback), self-contained project JSON, arranged MIDI (arps written out as fast notes), and
+  share links that pack the whole project into the URL.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Development
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+npm install
+npm run dev        # local dev server
+npm test           # vitest (engine, compiler, theory — 214 tests)
+npm run build      # production build (dist/)
+npm run lint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Developer-only scripts:
+
+```
+node scripts/make-demo-midis.mjs                          # regenerate the demo songs
+python3 scripts/build_chord_library.py path/to/free-midi-chords   # rebuild the chord library
+```
+
+The spec (`SPEC.md`) is the source of truth for the architecture; `CLAUDE.md` holds the working
+conventions. The audio engine lives in `src/audio/apu-worklet.ts` (shared by realtime playback,
+offline WAV rendering, and the Node test suite), the pure compiler in `src/engine/compile.ts`.
+
+To enable the "Buy me a coffee" link, set `COFFEE_URL` in `src/config.ts`.
+
+## Credits
+
+- Chord progressions derived from [ldrolez/free-midi-chords](https://github.com/ldrolez/free-midi-chords) (MIT)
+- NES APU documentation: [NESdev wiki](https://www.nesdev.org/wiki/APU)
+- Game Boy audio documentation: [Pan Docs](https://gbdev.io/pandocs/Audio.html)
+
+Not affiliated with Nintendo. No Nintendo assets are used or imitated.
+
+## License
+
+[MIT](LICENSE) © 2026 Shane Morris
