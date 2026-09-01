@@ -1,73 +1,144 @@
 import { NES_PROFILE } from "../engine/chip-profiles";
 import { presetsForKind } from "../engine/instruments";
-import type { TrackArrangement } from "../engine/project";
+import type { LayerMode, TrackArrangement } from "../engine/project";
 import type { SourceTrack } from "../engine/song";
 import { useStore } from "../store";
 
-const SLOT_OPTIONS = [{ id: "", label: "— unassigned —" }].concat(
-  NES_PROFILE.channels.map((c) => ({ id: c.id, label: c.label })),
-);
+const CHIP_LABELS: Record<string, string> = { p1: "P1", p2: "P2", tri: "TRI", noise: "NOI" };
+
+const LAYER_OPTIONS: { value: LayerMode; label: string }[] = [
+  { value: "double", label: "Double" },
+  { value: "detune", label: "Detune" },
+  { value: "echo3", label: "Echo 3f" },
+  { value: "echo6", label: "Echo 6f" },
+  { value: "echo9", label: "Echo 9f" },
+  { value: "octave-up", label: "Octave ↑" },
+  { value: "octave-down", label: "Octave ↓" },
+];
 
 function TrackRow({ arr, src }: { arr: TrackArrangement; src: SourceTrack }) {
   const updateTrack = useStore((s) => s.updateTrack);
   const warnings = useStore((s) => s.warnings).filter((w) => w.trackId === arr.id);
 
-  const slotId = arr.slots[0] ?? "";
-  const slotDef = NES_PROFILE.channels.find((c) => c.id === slotId);
-  const presets = slotDef ? presetsForKind(slotDef.kind) : [];
-  const unassigned = slotId === "";
+  const firstSlotDef = NES_PROFILE.channels.find((c) => c.id === arr.slots[0]);
+  const presets = firstSlotDef ? presetsForKind(firstSlotDef.kind) : [];
+  const pulseSlots = arr.slots.filter((id) => id === "p1" || id === "p2");
+  const layerable =
+    arr.slots.length === 2 &&
+    pulseSlots.length === 2 &&
+    (arr.polyMode === "top" || arr.polyMode === "bottom");
+  const showArpSpeed = arr.polyMode === "arp" || arr.polyMode === "split";
+
   const hints = [
-    ...(unassigned ? ["Track is unassigned and silent"] : []),
-    ...(src.isDrums ? ["Drum rendering arrives in M3"] : []),
+    ...(arr.slots.length === 0 ? ["Track is unassigned and silent"] : []),
+    ...(!src.isDrums && src.maxPolyphony > 2 && arr.polyMode === "top"
+      ? ["Polyphonic track in top mode — try arp"]
+      : []),
     ...warnings.map((w) => w.message),
   ];
 
+  function toggleSlot(id: string) {
+    const slots = arr.slots.includes(id) ? arr.slots.filter((s) => s !== id) : [...arr.slots, id];
+    updateTrack(arr.id, { slots });
+  }
+
   return (
     <div className="flex items-center gap-3 border-b border-zinc-800/60 px-4 py-2 text-sm">
-      <span className="w-40 truncate font-medium" title={src.name}>
+      <span className="w-36 truncate font-medium" title={src.name}>
         {src.name}
       </span>
-      <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
+      <span className="w-14 rounded bg-zinc-800 px-1.5 py-0.5 text-center font-mono text-[10px] text-zinc-400">
         {src.isDrums ? "drums" : `poly ${src.maxPolyphony}`}
       </span>
 
-      <select
-        value={slotId}
-        onChange={(e) => updateTrack(arr.id, { slots: e.target.value === "" ? [] : [e.target.value] })}
-        className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1"
-      >
-        {SLOT_OPTIONS.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <div className="flex gap-1">
+        {NES_PROFILE.channels.map((c) => {
+          const on = arr.slots.includes(c.id);
+          const order = arr.slots.indexOf(c.id);
+          return (
+            <button
+              key={c.id}
+              onClick={() => toggleSlot(c.id)}
+              title={`${c.label}${on && arr.slots.length > 1 ? ` (slot ${order + 1})` : ""}`}
+              className={`rounded px-2 py-1 font-mono text-xs ${
+                on ? "bg-emerald-600 text-white" : "bg-zinc-800 text-zinc-500 hover:bg-zinc-700"
+              }`}
+            >
+              {CHIP_LABELS[c.id]}
+            </button>
+          );
+        })}
+      </div>
 
-      <select
-        value={arr.instrumentId}
-        disabled={presets.length === 0}
-        onChange={(e) => updateTrack(arr.id, { instrumentId: e.target.value })}
-        className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1 disabled:opacity-40"
-      >
-        {presets.length === 0 ? (
-          <option value={arr.instrumentId}>—</option>
-        ) : (
-          presets.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))
-        )}
-      </select>
+      {src.isDrums ? (
+        <span className="w-36 rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-zinc-400">
+          NES Kit
+        </span>
+      ) : (
+        <>
+          <select
+            value={arr.instrumentId}
+            disabled={presets.length === 0}
+            onChange={(e) => updateTrack(arr.id, { instrumentId: e.target.value })}
+            className="w-32 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 disabled:opacity-40"
+          >
+            {presets.length === 0 ? (
+              <option value={arr.instrumentId}>—</option>
+            ) : (
+              presets.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))
+            )}
+          </select>
 
-      <select
-        value={arr.polyMode}
-        onChange={(e) => updateTrack(arr.id, { polyMode: e.target.value as TrackArrangement["polyMode"] })}
-        className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1"
-      >
-        <option value="top">top</option>
-        <option value="bottom">bottom</option>
-      </select>
+          <select
+            value={arr.polyMode}
+            onChange={(e) =>
+              updateTrack(arr.id, { polyMode: e.target.value as TrackArrangement["polyMode"] })
+            }
+            className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1"
+          >
+            <option value="top">top</option>
+            <option value="bottom">bottom</option>
+            <option value="arp">arp</option>
+            <option value="split">split</option>
+          </select>
+
+          {showArpSpeed && (
+            <select
+              value={arr.arpFramesPerStep}
+              title="Arp speed (frames per step)"
+              onChange={(e) =>
+                updateTrack(arr.id, {
+                  arpFramesPerStep: Number(e.target.value) as TrackArrangement["arpFramesPerStep"],
+                })
+              }
+              className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1"
+            >
+              <option value={1}>1f</option>
+              <option value={2}>2f</option>
+              <option value={3}>3f</option>
+            </select>
+          )}
+
+          {layerable && (
+            <select
+              value={arr.layerMode ?? "double"}
+              title="Layer mode for the second pulse"
+              onChange={(e) => updateTrack(arr.id, { layerMode: e.target.value as LayerMode })}
+              className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1"
+            >
+              {LAYER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </>
+      )}
 
       <button
         onClick={() => updateTrack(arr.id, { mute: !arr.mute })}
@@ -109,7 +180,8 @@ export default function TrackList() {
         return src ? <TrackRow key={arr.id} arr={arr} src={src} /> : null;
       })}
       <p className="px-4 py-3 text-xs text-zinc-600">
-        Drop another .mid file anywhere to replace the song.
+        Drop another .mid file anywhere to replace the song. Slot chips toggle channels; two pulse
+        slots + top/bottom unlocks layer modes.
       </p>
     </div>
   );
