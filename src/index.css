@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@theme {
+  /* Quantico carries the whole UI: 400 for controls, 700 for emphasis.
+     (The face only ships in 400/700 — there is no lighter cut.) */
+  --font-sans: "Quantico", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  font-family: var(--font-sans);
+}

@@ -35,7 +35,7 @@ export default function EmptyState() {
         onClick={() => inputRef.current?.click()}
         className="rounded-lg border-2 border-dashed border-zinc-700 px-16 py-10 text-zinc-300 hover:border-emerald-600 hover:text-zinc-100"
       >
-        Upload a MIDI file to get started
+        <span className="text-lg font-bold">Upload a MIDI file to get started</span>
         <span className="mt-1 block text-xs text-zinc-500">
           drop a .mid anywhere on this page, or click to browse
         </span>
