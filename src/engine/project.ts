@@ -1,5 +1,6 @@
 import { autoArrange } from "./auto-arrange";
 import type { ChipProfile } from "./chip-profiles";
+import type { InstrumentTweaks } from "./instruments";
 import type { Song } from "./song";
 
 export type PolyMode = "top" | "bottom" | "arp" | "split";
@@ -30,6 +31,7 @@ export type TrackArrangement = {
   solo: boolean;
   layerMode?: LayerMode; // applies when two pulse slots + top/bottom (§7.6)
   pan?: 0 | 1 | 2 | 3; // gb only: 1 = L, 2 = R, 3 = both (default)
+  tweaks?: InstrumentTweaks; // §5 minimal tweaks over the preset
   regions?: Region[]; // optional per-section overrides (M7)
 };
 

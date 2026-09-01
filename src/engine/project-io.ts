@@ -28,6 +28,15 @@ const trackSchema = z.object({
     .enum(["double", "detune", "echo3", "echo6", "echo9", "octave-up", "octave-down"])
     .optional(),
   pan: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).optional(),
+  tweaks: z
+    .object({
+      duty: z.number().int().min(0).max(3).optional(),
+      attack: z.number().int().min(0).max(60).optional(),
+      decay: z.number().int().min(0).max(120).optional(),
+      vibratoDepth: z.number().int().min(0).max(8).optional(),
+      vibratoDelay: z.number().int().min(0).max(120).optional(),
+    })
+    .optional(),
   regions: z.array(regionSchema).optional(),
 });
 
