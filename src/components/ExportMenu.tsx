@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { COFFEE_URL } from "../config";
 import { renderScript } from "../audio/render";
+import { PROFILES } from "../engine/chip-profiles";
+import { lanesFor } from "../viz/lanes";
+import { exportGbVideo } from "../viz/video-export";
 import { encodeWav } from "../audio/wav";
 import { exportArrangedMidi } from "../engine/midi-export";
 import { encodeShare } from "../engine/share";
@@ -8,8 +11,8 @@ import { useStore } from "../store";
 
 const SHARE_MIDI_LIMIT = 100 * 1024; // §10.2: embed MIDI in links only under 100 KB
 
-function download(data: ArrayBuffer | Uint8Array | string, name: string, type: string): void {
-  const blob = new Blob([data as BlobPart], { type });
+function download(data: ArrayBuffer | Uint8Array | string | Blob, name: string, type: string): void {
+  const blob = data instanceof Blob ? data : new Blob([data as BlobPart], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -20,7 +23,7 @@ function download(data: ArrayBuffer | Uint8Array | string, name: string, type: s
 
 export default function ExportMenu() {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | false>(false);
   const [loopFade, setLoopFade] = useState(false);
   const script = useStore((s) => s.script);
   const project = useStore((s) => s.project);
@@ -31,9 +34,33 @@ export default function ExportMenu() {
   if (!script || !project || !song) return null;
   const base = song.name.replace(/\.midi?$/i, "") || "chiptune";
 
+  async function exportVideo() {
+    if (!script || !project || !song) return;
+    setBusy("Rendering audio…");
+    try {
+      const channels = await renderScript(script, 44100);
+      const lanes = lanesFor(project, PROFILES[project.chip === "gb" ? "gb" : "nes"]);
+      const { blob, ext } = await exportGbVideo(
+        script,
+        lanes,
+        song.name,
+        channels,
+        44100,
+        (f) => setBusy(`Recording ${Math.round(f * 100)}%`),
+      );
+      download(blob, `${base}-gbview.${ext}`, blob.type);
+      showToast(`Video exported (.${ext}).`);
+    } catch (err) {
+      showToast(`Video export failed: ${String(err)}`);
+    } finally {
+      setBusy(false);
+      setOpen(false);
+    }
+  }
+
   async function exportWav(sampleRate: 44100 | 48000) {
     if (!script) return;
-    setBusy(true);
+    setBusy("Rendering…");
     try {
       const channels = await renderScript(script, sampleRate, { loopTwiceFade: loopFade });
       download(encodeWav(channels, sampleRate), `${base}.wav`, "audio/wav");
@@ -87,14 +114,14 @@ export default function ExportMenu() {
         onClick={() => setOpen(!open)}
         className="rounded bg-zinc-800 px-3 py-1 text-sm hover:bg-zinc-700"
       >
-        {busy ? "Rendering…" : "Export ▾"}
+        {busy || "Export ▾"}
       </button>
       {open && (
         <div className="absolute right-0 top-full z-10 mt-1 w-64 rounded border border-zinc-700 bg-zinc-900 py-1 shadow-xl">
-          <button className={item} disabled={busy} onClick={() => void exportWav(44100)}>
+          <button className={item} disabled={!!busy} onClick={() => void exportWav(44100)}>
             Download WAV · 44.1 kHz
           </button>
-          <button className={item} disabled={busy} onClick={() => void exportWav(48000)}>
+          <button className={item} disabled={!!busy} onClick={() => void exportWav(48000)}>
             Download WAV · 48 kHz
           </button>
           <label className="flex items-center gap-2 px-3 py-1.5 text-sm text-zinc-400">
@@ -105,6 +132,12 @@ export default function ExportMenu() {
             />
             Loop 2× + fade out
           </label>
+          <button className={item} disabled={!!busy} onClick={() => void exportVideo()}>
+            Download video · 9:16 GB View
+            <span className="block text-[10px] text-zinc-500">
+              records in real time — keep this tab visible
+            </span>
+          </button>
           <div className="my-1 border-t border-zinc-800" />
           <button className={item} onClick={exportJson}>
             Download project JSON

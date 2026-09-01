@@ -16,6 +16,8 @@ export default function Header() {
   const play = useStore((s) => s.play);
   const pause = useStore((s) => s.pause);
   const stop = useStore((s) => s.stop);
+  const gbView = useStore((s) => s.gbView);
+  const toggleGbView = useStore((s) => s.toggleGbView);
 
   const [showAbout, setShowAbout] = useState(false);
 
@@ -85,6 +87,18 @@ export default function Header() {
           {playing ? "⏸" : "▶"}
         </button>
       </div>
+
+      <button
+        onClick={toggleGbView}
+        title="Toggle Game Boy View"
+        className={`rounded px-3 py-1 font-mono text-xs ${
+          gbView
+            ? "bg-[#8bac0f] font-bold text-[#0f380f]"
+            : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+        }`}
+      >
+        GB VIEW
+      </button>
 
       <div className="ml-auto flex items-center gap-3">
         <ExportMenu />

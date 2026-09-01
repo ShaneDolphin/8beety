@@ -42,6 +42,8 @@ type AppState = {
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
   assignToSlot: (trackId: string, slotId: string) => void;
   chordAssistTrackId: string | null;
+  gbView: boolean;
+  toggleGbView: () => void;
   audition: (instrumentId: string, slotId: string) => Promise<void>;
   openChordAssist: (trackId: string | null) => void;
   addDerivedTrack: (track: SourceTrack) => void;
@@ -102,6 +104,9 @@ export const useStore = create<AppState>()((set, get) => {
     savedLoopBars: null,
     focusedIndex: null,
     chordAssistTrackId: null,
+    gbView: false,
+
+    toggleGbView: () => set({ gbView: !get().gbView }),
 
     openChordAssist: (trackId) => set({ chordAssistTrackId: trackId }),
 

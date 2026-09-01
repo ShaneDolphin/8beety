@@ -4,6 +4,7 @@ import { decodeShare } from "./engine/share";
 import BarRuler from "./components/BarRuler";
 import ChipRack from "./components/ChipRack";
 import ChordAssist from "./components/ChordAssist";
+import GameBoyView from "./components/GameBoyView";
 import EmptyState from "./components/EmptyState";
 import Header from "./components/Header";
 import TrackList from "./components/TrackList";
@@ -13,6 +14,7 @@ export default function App() {
   const song = useStore((s) => s.song);
   const toast = useStore((s) => s.toast);
   const loadMidi = useStore((s) => s.loadMidi);
+  const gbView = useStore((s) => s.gbView);
 
   useEffect(() => {
     function onDragOver(e: DragEvent) {
@@ -89,7 +91,7 @@ export default function App() {
           <Header />
           <ChipRack />
           <BarRuler />
-          <TrackList />
+          {gbView ? <GameBoyView /> : <TrackList />}
           <ChordAssist />
         </>
       ) : (
