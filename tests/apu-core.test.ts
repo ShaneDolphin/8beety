@@ -47,7 +47,7 @@ describe("ApuCore (shared realtime/offline engine)", () => {
     const script = buildM1Fixture();
     const a = renderWhole(freshCore(script), 20000);
     const b = renderWhole(freshCore(script), 20000);
-    expect(Buffer.from(a.buffer)).toEqual(Buffer.from(b.buffer));
+    expect(a).toEqual(b);
   });
 
   it("loops when a loop range is set", () => {
