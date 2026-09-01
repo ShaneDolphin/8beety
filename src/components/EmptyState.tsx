@@ -26,7 +26,7 @@ export default function EmptyState() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4">
+    <div className="relative flex flex-1 flex-col items-center justify-center gap-6 px-4">
       <h1>
         <PixelLogo className="h-16 w-auto" />
       </h1>
@@ -51,6 +51,28 @@ export default function EmptyState() {
         className="hidden"
         onChange={(e) => void onPick(e.target.files)}
       />
+      <footer className="absolute inset-x-0 bottom-4 text-center text-xs text-zinc-600">
+        This application was built by Shane Morris from{" "}
+        <a
+          href="https://beautifulmajesticdolphin.com"
+          target="_blank"
+          rel="noreferrer"
+          className="text-zinc-400 hover:underline"
+        >
+          Beautiful{" "}
+          <span
+            className="bg-clip-text font-bold text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, #f87171, #fb923c, #facc15, #4ade80, #38bdf8, #a78bfa)",
+            }}
+          >
+            Majestic
+          </span>{" "}
+          Dolphin
+        </a>
+        .
+      </footer>
     </div>
   );
 }
