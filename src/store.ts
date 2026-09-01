@@ -11,6 +11,8 @@ import {
   type DecodedProjectFile,
   type ProjectFile,
 } from "./engine/project-io";
+import { mergeRegions, splitRegions, updateRegion } from "./engine/regions";
+import type { Region } from "./engine/project";
 import { defaultProject, type Project, type TrackArrangement } from "./engine/project";
 import type { Song } from "./engine/song";
 
@@ -37,6 +39,9 @@ type AppState = {
   setChip: (chip: "nes" | "gb") => void;
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
   assignToSlot: (trackId: string, slotId: string) => void;
+  splitAtPlayhead: (trackId: string) => void;
+  updateRegionAt: (trackId: string, index: number, patch: Partial<Region>) => void;
+  mergeRegionAt: (trackId: string, index: number) => void;
   play: () => Promise<void>;
   pause: () => void;
   stop: () => void;
@@ -201,6 +206,33 @@ export const useStore = create<AppState>()((set, get) => {
       if (!project) return;
       set({ project: { ...project, tracks: assignTrackToSlot(project.tracks, trackId, slotId) } });
       scheduleCompile();
+    },
+
+    splitAtPlayhead: (trackId) => {
+      const { project, script, frame } = get();
+      if (!project || !script) return;
+      const track = project.tracks.find((t) => t.id === trackId);
+      if (!track) return;
+      const bar = script.barStarts.filter((b) => b <= frame).length - 1;
+      const next = splitRegions(track.regions, bar, script.barStarts.length);
+      if (next === track.regions) {
+        get().showToast("Move the playhead inside a region (past bar 1) to split there.");
+        return;
+      }
+      get().updateTrack(trackId, { regions: next });
+      get().showToast(`Split "${track.name}" at bar ${bar + 1}.`);
+    },
+
+    updateRegionAt: (trackId, index, patch) => {
+      const track = get().project?.tracks.find((t) => t.id === trackId);
+      if (!track?.regions) return;
+      get().updateTrack(trackId, { regions: updateRegion(track.regions, index, patch) });
+    },
+
+    mergeRegionAt: (trackId, index) => {
+      const track = get().project?.tracks.find((t) => t.id === trackId);
+      if (!track?.regions) return;
+      get().updateTrack(trackId, { regions: mergeRegions(track.regions, index) });
     },
 
     play: async () => {

@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { PROFILES } from "../engine/chip-profiles";
-import { presetsForKind } from "../engine/instruments";
+import { presetsForKind, type InstrumentTweaks } from "../engine/instruments";
 import type { LayerMode, TrackArrangement } from "../engine/project";
 import type { SourceTrack } from "../engine/song";
 import { useStore } from "../store";
@@ -23,8 +24,43 @@ const LAYER_OPTIONS: { value: LayerMode; label: string }[] = [
   { value: "octave-down", label: "Octave ↓" },
 ];
 
+function TweakField({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number | undefined;
+  min: number;
+  max: number;
+  onChange: (v: number | undefined) => void;
+}) {
+  return (
+    <label className="flex items-center gap-1 text-xs text-zinc-400">
+      {label}
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value ?? ""}
+        placeholder="–"
+        onChange={(e) =>
+          onChange(e.target.value === "" ? undefined : Math.min(max, Math.max(min, Number(e.target.value))))
+        }
+        className="w-14 rounded border border-zinc-700 bg-zinc-950 px-1 py-0.5 text-right font-mono text-xs text-zinc-100"
+      />
+    </label>
+  );
+}
+
 function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack; index: number }) {
   const updateTrack = useStore((s) => s.updateTrack);
+  const splitAtPlayhead = useStore((s) => s.splitAtPlayhead);
+  const updateRegionAt = useStore((s) => s.updateRegionAt);
+  const mergeRegionAt = useStore((s) => s.mergeRegionAt);
+  const [showTweaks, setShowTweaks] = useState(false);
   const setFocused = useStore((s) => s.setFocused);
   const focused = useStore((s) => s.focusedIndex) === index;
   const warnings = useStore((s) => s.warnings).filter((w) => w.trackId === arr.id);
@@ -53,7 +89,14 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
     updateTrack(arr.id, { slots });
   }
 
+  function setTweak(field: keyof InstrumentTweaks, value: number | undefined) {
+    const tweaks = { ...arr.tweaks, [field]: value };
+    if (value === undefined) delete tweaks[field];
+    updateTrack(arr.id, { tweaks: Object.keys(tweaks).length > 0 ? tweaks : undefined });
+  }
+
   return (
+    <>
     <div
       className={`flex items-center gap-3 border-b border-zinc-800/60 px-4 py-2 text-sm ${
         focused ? "bg-zinc-900 ring-1 ring-inset ring-emerald-600" : ""
@@ -207,12 +250,139 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
         S
       </button>
 
+      {!src.isDrums && (
+        <>
+          <button
+            onClick={() => splitAtPlayhead(arr.id)}
+            title="Split into regions at the playhead's bar"
+            className="rounded bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-400 hover:bg-zinc-700"
+          >
+            ✂
+          </button>
+          <button
+            onClick={() => setShowTweaks(!showTweaks)}
+            title="Instrument tweaks (duty, attack/decay, vibrato)"
+            className={`rounded px-2 py-1 font-mono text-xs ${
+              showTweaks || arr.tweaks
+                ? "bg-emerald-700 text-white"
+                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+            }`}
+          >
+            ⚙
+          </button>
+        </>
+      )}
+
       {hints.length > 0 && (
         <span className="text-amber-400" title={hints.join("\n")}>
           ⚠
         </span>
       )}
     </div>
+
+    {arr.regions && (
+      <div className="flex flex-wrap gap-2 border-b border-zinc-800/60 bg-zinc-900/40 px-4 py-1.5 pl-12">
+        {arr.regions.map((region, i) => {
+          const regionSlotId = region.slots?.[0] ?? "";
+          const effSlotId = regionSlotId || arr.slots[0];
+          const effDef = profile.channels.find((c) => c.id === effSlotId);
+          const regionPresets = effDef ? presetsForKind(effDef.kind) : [];
+          return (
+            <div key={i} className="flex items-center gap-1 rounded border border-zinc-800 px-2 py-1 text-xs">
+              <span className="font-mono text-zinc-500">
+                bars {region.startBar + 1}–{region.endBar}
+              </span>
+              <select
+                value={region.instrumentId ?? ""}
+                onChange={(e) =>
+                  updateRegionAt(arr.id, i, { instrumentId: e.target.value || undefined })
+                }
+                className="rounded border border-zinc-700 bg-zinc-950 px-1 py-0.5"
+              >
+                <option value="">(track)</option>
+                {regionPresets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={region.polyMode ?? ""}
+                onChange={(e) =>
+                  updateRegionAt(arr.id, i, {
+                    polyMode: (e.target.value || undefined) as TrackArrangement["polyMode"] | undefined,
+                  })
+                }
+                className="rounded border border-zinc-700 bg-zinc-950 px-1 py-0.5"
+              >
+                <option value="">(track)</option>
+                <option value="top">top</option>
+                <option value="bottom">bottom</option>
+                <option value="arp">arp</option>
+                <option value="split">split</option>
+              </select>
+              <select
+                value={regionSlotId}
+                onChange={(e) =>
+                  updateRegionAt(arr.id, i, { slots: e.target.value ? [e.target.value] : undefined })
+                }
+                className="rounded border border-zinc-700 bg-zinc-950 px-1 py-0.5"
+              >
+                <option value="">(track)</option>
+                {profile.channels.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              {i > 0 && (
+                <button
+                  onClick={() => mergeRegionAt(arr.id, i)}
+                  title="Merge into the previous region"
+                  className="text-zinc-500 hover:text-red-400"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {showTweaks && !src.isDrums && (
+      <div className="flex flex-wrap items-center gap-3 border-b border-zinc-800/60 bg-zinc-900/40 px-4 py-1.5 pl-12">
+        {firstSlotDef?.kind === "pulse" && (
+          <label className="flex items-center gap-1 text-xs text-zinc-400">
+            duty
+            <select
+              value={arr.tweaks?.duty ?? ""}
+              onChange={(e) =>
+                setTweak("duty", e.target.value === "" ? undefined : Number(e.target.value))
+              }
+              className="rounded border border-zinc-700 bg-zinc-950 px-1 py-0.5 font-mono text-xs text-zinc-100"
+            >
+              <option value="">–</option>
+              <option value={0}>12.5%</option>
+              <option value={1}>25%</option>
+              <option value={2}>50%</option>
+              <option value={3}>75%</option>
+            </select>
+          </label>
+        )}
+        <TweakField label="attack" value={arr.tweaks?.attack} min={0} max={60} onChange={(v) => setTweak("attack", v)} />
+        <TweakField label="decay" value={arr.tweaks?.decay} min={0} max={120} onChange={(v) => setTweak("decay", v)} />
+        <TweakField label="vib depth" value={arr.tweaks?.vibratoDepth} min={0} max={8} onChange={(v) => setTweak("vibratoDepth", v)} />
+        <TweakField label="vib delay" value={arr.tweaks?.vibratoDelay} min={0} max={120} onChange={(v) => setTweak("vibratoDelay", v)} />
+        <button
+          onClick={() => updateTrack(arr.id, { tweaks: undefined })}
+          className="text-xs text-zinc-500 hover:text-zinc-200"
+        >
+          reset
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 
