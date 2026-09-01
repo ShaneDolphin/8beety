@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { ApuPlayer } from "./audio/player";
+import { assignTrackToSlot, loopFrames } from "./engine/arrange-ops";
 import { compile, type CompileWarning } from "./engine/compile";
 import { NES_PROFILE } from "./engine/chip-profiles";
 import type { FrameScript } from "./engine/frame-script";
@@ -17,14 +18,22 @@ type AppState = {
   playing: boolean;
   frame: number;
   toast: string | null;
+  loopBars: [number, number] | null;
+  savedLoopBars: [number, number] | null;
+  focusedIndex: number | null;
 
   loadMidi: (data: Uint8Array, fileName: string) => void;
   loadDemo: () => Promise<void>;
   setBpm: (bpm: number) => void;
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
+  assignToSlot: (trackId: string, slotId: string) => void;
   play: () => Promise<void>;
   pause: () => void;
   stop: () => void;
+  seek: (frame: number) => void;
+  setLoopBars: (bars: [number, number] | null) => void;
+  toggleLoop: () => void;
+  setFocused: (index: number | null) => void;
   showToast: (message: string) => void;
 };
 
@@ -34,6 +43,11 @@ let compileTimer: ReturnType<typeof setTimeout> | null = null;
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useStore = create<AppState>()((set, get) => {
+  function applyLoop(): void {
+    const { script, loopBars } = get();
+    if (playerReady) player.setLoop(script && loopBars ? loopFrames(script, loopBars) : null);
+  }
+
   function recompileNow(): void {
     const { song, project } = get();
     if (!song || !project) return;
@@ -43,6 +57,7 @@ export const useStore = create<AppState>()((set, get) => {
     if (import.meta.env.DEV) console.log(`compile: ${compileMs.toFixed(1)} ms`);
     set({ script, warnings, compileMs });
     if (playerReady) player.hotSwap(script);
+    applyLoop(); // bar frames may have moved (BPM change)
   }
 
   function scheduleCompile(): void {
@@ -59,11 +74,22 @@ export const useStore = create<AppState>()((set, get) => {
     playing: false,
     frame: 0,
     toast: null,
+    loopBars: null,
+    savedLoopBars: null,
+    focusedIndex: null,
 
     loadMidi: (data, fileName) => {
       const song = parseMidi(data, fileName);
       const project = defaultProject(song);
-      set({ song, project, frame: 0, playing: false });
+      set({
+        song,
+        project,
+        frame: 0,
+        playing: false,
+        loopBars: null,
+        savedLoopBars: null,
+        focusedIndex: null,
+      });
       if (playerReady) {
         player.pause();
         player.seek(0);
@@ -71,7 +97,7 @@ export const useStore = create<AppState>()((set, get) => {
       recompileNow();
       const { assignedCount } = autoArrange(song);
       get().showToast(
-        `Auto-arranged ${assignedCount} of ${song.tracks.length} tracks. Use the slot menus to change.`,
+        `Auto-arranged ${assignedCount} of ${song.tracks.length} tracks. Drag tracks onto the rack to change.`,
       );
     },
 
@@ -101,6 +127,13 @@ export const useStore = create<AppState>()((set, get) => {
       scheduleCompile();
     },
 
+    assignToSlot: (trackId, slotId) => {
+      const { project } = get();
+      if (!project) return;
+      set({ project: { ...project, tracks: assignTrackToSlot(project.tracks, trackId, slotId) } });
+      scheduleCompile();
+    },
+
     play: async () => {
       const { script } = get();
       if (!script) return;
@@ -110,6 +143,7 @@ export const useStore = create<AppState>()((set, get) => {
         player.onEnded = () => set({ playing: false, frame: 0 });
         playerReady = true;
         player.load(get().script ?? script);
+        applyLoop();
       }
       await player.play();
       set({ playing: true });
@@ -125,6 +159,34 @@ export const useStore = create<AppState>()((set, get) => {
       player.seek(0);
       set({ playing: false, frame: 0 });
     },
+
+    seek: (frame) => {
+      const { script } = get();
+      if (!script) return;
+      const clamped = Math.max(0, Math.min(script.frameCount - 1, Math.round(frame)));
+      player.seek(clamped);
+      set({ frame: clamped });
+    },
+
+    setLoopBars: (bars) => {
+      set({ loopBars: bars, savedLoopBars: bars ?? get().savedLoopBars });
+      applyLoop();
+    },
+
+    toggleLoop: () => {
+      const { loopBars, savedLoopBars } = get();
+      if (loopBars) {
+        set({ loopBars: null });
+      } else if (savedLoopBars) {
+        set({ loopBars: savedLoopBars });
+      } else {
+        get().showToast("Drag on the bar ruler to set a loop range first.");
+        return;
+      }
+      applyLoop();
+    },
+
+    setFocused: (index) => set({ focusedIndex: index }),
 
     showToast: (message) => {
       set({ toast: message });

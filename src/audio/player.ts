@@ -41,6 +41,10 @@ export class ApuPlayer {
     this.post({ type: "hotSwap", script });
   }
 
+  setLoop(loop: [number, number] | null): void {
+    this.post({ type: "setLoop", loop });
+  }
+
   private post(msg: ApuMessage): void {
     this.node?.port.postMessage(msg);
   }
