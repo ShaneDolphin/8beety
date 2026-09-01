@@ -13,6 +13,7 @@ import {
 } from "./engine/project-io";
 import { mergeRegions, splitRegions, updateRegion } from "./engine/regions";
 import type { Region } from "./engine/project";
+import type { SourceTrack } from "./engine/song";
 import { defaultProject, type Project, type TrackArrangement } from "./engine/project";
 import type { Song } from "./engine/song";
 
@@ -39,6 +40,9 @@ type AppState = {
   setChip: (chip: "nes" | "gb") => void;
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
   assignToSlot: (trackId: string, slotId: string) => void;
+  chordAssistTrackId: string | null;
+  openChordAssist: (trackId: string | null) => void;
+  addDerivedTrack: (track: SourceTrack) => void;
   splitAtPlayhead: (trackId: string) => void;
   updateRegionAt: (trackId: string, index: number, patch: Partial<Region>) => void;
   mergeRegionAt: (trackId: string, index: number) => void;
@@ -95,6 +99,40 @@ export const useStore = create<AppState>()((set, get) => {
     loopBars: null,
     savedLoopBars: null,
     focusedIndex: null,
+    chordAssistTrackId: null,
+
+    openChordAssist: (trackId) => set({ chordAssistTrackId: trackId }),
+
+    addDerivedTrack: (track) => {
+      const { song, project } = get();
+      if (!song || !project) return;
+      const derived = { ...track, index: song.tracks.length };
+      set({
+        song: { ...song, tracks: [...song.tracks, derived] },
+        project: {
+          ...project,
+          tracks: [
+            ...project.tracks,
+            {
+              id: `derived-${derived.index}-${Date.now() % 100000}`,
+              sourceIndex: derived.index,
+              name: derived.name,
+              slots: [],
+              instrumentId: "arp-chord",
+              polyMode: "arp" as const,
+              arpFramesPerStep: 1 as const,
+              octaveShift: 0,
+              transpose: 0,
+              volume: 15,
+              mute: false,
+              solo: false,
+            },
+          ],
+        },
+      });
+      recompileNow();
+      get().showToast(`Added "${derived.name}" — drag it onto the rack to hear it.`);
+    },
 
     loadMidi: (data, fileName) => {
       const song = parseMidi(data, fileName);
@@ -109,6 +147,7 @@ export const useStore = create<AppState>()((set, get) => {
         loopBars: null,
         savedLoopBars: null,
         focusedIndex: null,
+        chordAssistTrackId: null,
       });
       if (playerReady) {
         player.pause();
@@ -152,6 +191,7 @@ export const useStore = create<AppState>()((set, get) => {
         loopBars: null,
         savedLoopBars: null,
         focusedIndex: null,
+        chordAssistTrackId: null,
       });
       if (playerReady) {
         player.pause();

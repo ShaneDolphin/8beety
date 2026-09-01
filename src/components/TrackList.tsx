@@ -58,6 +58,7 @@ function TweakField({
 function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack; index: number }) {
   const updateTrack = useStore((s) => s.updateTrack);
   const splitAtPlayhead = useStore((s) => s.splitAtPlayhead);
+  const openChordAssist = useStore((s) => s.openChordAssist);
   const updateRegionAt = useStore((s) => s.updateRegionAt);
   const mergeRegionAt = useStore((s) => s.mergeRegionAt);
   const [showTweaks, setShowTweaks] = useState(false);
@@ -250,6 +251,15 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
         S
       </button>
 
+      {!src.isDrums && src.maxPolyphony >= 2 && (
+        <button
+          onClick={() => openChordAssist(arr.id)}
+          title="Chord Assist — detect and enrich this track's chords"
+          className="rounded bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-400 hover:bg-zinc-700"
+        >
+          ♪
+        </button>
+      )}
       {!src.isDrums && (
         <>
           <button

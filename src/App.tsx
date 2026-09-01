@@ -3,6 +3,7 @@ import { decodeProjectFile } from "./engine/project-io";
 import { decodeShare } from "./engine/share";
 import BarRuler from "./components/BarRuler";
 import ChipRack from "./components/ChipRack";
+import ChordAssist from "./components/ChordAssist";
 import EmptyState from "./components/EmptyState";
 import Header from "./components/Header";
 import TrackList from "./components/TrackList";
@@ -89,6 +90,7 @@ export default function App() {
           <ChipRack />
           <BarRuler />
           <TrackList />
+          <ChordAssist />
         </>
       ) : (
         <EmptyState />
