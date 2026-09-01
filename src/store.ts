@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { auditionInstrument } from "./audio/audition";
 import { ApuPlayer } from "./audio/player";
 import { assignTrackToSlot, loopFrames, remapForChip } from "./engine/arrange-ops";
 import { compile, type CompileWarning } from "./engine/compile";
@@ -41,6 +42,7 @@ type AppState = {
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
   assignToSlot: (trackId: string, slotId: string) => void;
   chordAssistTrackId: string | null;
+  audition: (instrumentId: string, slotId: string) => Promise<void>;
   openChordAssist: (trackId: string | null) => void;
   addDerivedTrack: (track: SourceTrack) => void;
   splitAtPlayhead: (trackId: string) => void;
@@ -102,6 +104,24 @@ export const useStore = create<AppState>()((set, get) => {
     chordAssistTrackId: null,
 
     openChordAssist: (trackId) => set({ chordAssistTrackId: trackId }),
+
+    audition: async (instrumentId, slotId) => {
+      const { playing, project } = get();
+      if (playing || !project) return; // live playback already lets you hear the swap
+      if (!playerReady) {
+        await player.init();
+        player.onFrame = (frame) => set({ frame });
+        player.onEnded = () => set({ playing: false, frame: 0 });
+        playerReady = true;
+        const { script } = get();
+        if (script) player.load(script);
+        applyLoop();
+      }
+      const ctx = player.context;
+      if (!ctx) return;
+      await ctx.resume();
+      auditionInstrument(ctx, instrumentId, slotId, project.chip === "gb" ? "gb" : "nes");
+    },
 
     addDerivedTrack: (track) => {
       const { song, project } = get();

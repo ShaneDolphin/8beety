@@ -45,6 +45,10 @@ export class ApuPlayer {
     this.post({ type: "setLoop", loop });
   }
 
+  get context(): AudioContext | null {
+    return this.ctx;
+  }
+
   private post(msg: ApuMessage): void {
     this.node?.port.postMessage(msg);
   }

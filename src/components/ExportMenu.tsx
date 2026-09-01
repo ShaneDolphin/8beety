@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { COFFEE_URL } from "../config";
 import { renderScript } from "../audio/render";
 import { encodeWav } from "../audio/wav";
 import { exportArrangedMidi } from "../engine/midi-export";
@@ -36,7 +37,7 @@ export default function ExportMenu() {
     try {
       const channels = await renderScript(script, sampleRate, { loopTwiceFade: loopFade });
       download(encodeWav(channels, sampleRate), `${base}.wav`, "audio/wav");
-      showToast("WAV exported.");
+      showToast(COFFEE_URL !== "" ? "WAV exported. Enjoying this? Buy me a coffee ☕" : "WAV exported.");
     } catch (err) {
       showToast(`WAV export failed: ${String(err)}`);
     } finally {

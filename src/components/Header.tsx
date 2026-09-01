@@ -1,4 +1,7 @@
+import { useState } from "react";
+import { COFFEE_URL } from "../config";
 import { useStore } from "../store";
+import AboutPanel from "./AboutPanel";
 import ExportMenu from "./ExportMenu";
 
 export default function Header() {
@@ -12,6 +15,8 @@ export default function Header() {
   const play = useStore((s) => s.play);
   const pause = useStore((s) => s.pause);
   const stop = useStore((s) => s.stop);
+
+  const [showAbout, setShowAbout] = useState(false);
 
   if (!song || !project) return null;
 
@@ -82,10 +87,29 @@ export default function Header() {
 
       <div className="ml-auto flex items-center gap-3">
         <ExportMenu />
-        <span className="font-mono text-xs text-zinc-500">
+        {COFFEE_URL !== "" && (
+          <a
+            href={COFFEE_URL}
+            target="_blank"
+            rel="noreferrer"
+            title="Buy me a coffee"
+            className="text-sm hover:opacity-80"
+          >
+            ☕
+          </a>
+        )}
+        <button
+          onClick={() => setShowAbout(true)}
+          title="About"
+          className="text-sm text-zinc-500 hover:text-zinc-200"
+        >
+          ⓘ
+        </button>
+        <span className="hidden font-mono text-xs text-zinc-500 sm:inline">
           bar {bar} · frame {frame}
         </span>
       </div>
+      {showAbout && <AboutPanel onClose={() => setShowAbout(false)} />}
     </header>
   );
 }

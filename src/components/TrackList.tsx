@@ -59,6 +59,7 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
   const updateTrack = useStore((s) => s.updateTrack);
   const splitAtPlayhead = useStore((s) => s.splitAtPlayhead);
   const openChordAssist = useStore((s) => s.openChordAssist);
+  const audition = useStore((s) => s.audition);
   const updateRegionAt = useStore((s) => s.updateRegionAt);
   const mergeRegionAt = useStore((s) => s.mergeRegionAt);
   const [showTweaks, setShowTweaks] = useState(false);
@@ -156,7 +157,10 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
           <select
             value={arr.instrumentId}
             disabled={presets.length === 0}
-            onChange={(e) => updateTrack(arr.id, { instrumentId: e.target.value })}
+            onChange={(e) => {
+              updateTrack(arr.id, { instrumentId: e.target.value });
+              if (arr.slots[0]) void audition(e.target.value, arr.slots[0]);
+            }}
             className="w-32 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 disabled:opacity-40"
           >
             {presets.length === 0 ? (
