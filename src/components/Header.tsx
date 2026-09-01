@@ -3,6 +3,7 @@ import { COFFEE_URL } from "../config";
 import { useStore } from "../store";
 import AboutPanel from "./AboutPanel";
 import ExportMenu from "./ExportMenu";
+import PixelLogo from "./PixelLogo";
 
 export default function Header() {
   const song = useStore((s) => s.song);
@@ -24,7 +25,7 @@ export default function Header() {
 
   return (
     <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-800 bg-zinc-900 px-4 py-2">
-      <span className="font-bold tracking-tight">Chiptune Composer</span>
+      <PixelLogo className="h-4 w-auto shrink-0" />
       <span className="max-w-48 truncate text-sm text-zinc-400" title={song.name}>
         {song.name}
       </span>

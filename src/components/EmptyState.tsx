@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { decodeProjectFile } from "../engine/project-io";
 import { useStore } from "../store";
+import PixelLogo from "./PixelLogo";
 
 export default function EmptyState() {
   const loadMidi = useStore((s) => s.loadMidi);
@@ -15,9 +16,9 @@ export default function EmptyState() {
       try {
         const decoded = decodeProjectFile(JSON.parse(await file.text()));
         if (decoded) loadProjectFile(decoded);
-        else showToast("Not a valid Chiptune Composer project file.");
+        else showToast("Not a valid 8BEETY project file.");
       } catch {
-        showToast("Not a valid Chiptune Composer project file.");
+        showToast("Not a valid 8BEETY project file.");
       }
       return;
     }
@@ -26,7 +27,9 @@ export default function EmptyState() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4">
-      <h1 className="text-3xl font-bold tracking-tight">Chiptune Composer</h1>
+      <h1>
+        <PixelLogo className="h-16 w-auto" />
+      </h1>
       <p className="text-zinc-400">Turn any MIDI file into NES or Game Boy music.</p>
       <button
         onClick={() => inputRef.current?.click()}
@@ -39,7 +42,7 @@ export default function EmptyState() {
       </button>
       <p className="max-w-md text-center text-xs text-zinc-600">
         Your file never leaves the browser — it's parsed, arranged, and played locally. You can
-        also load a saved Chiptune Composer project (.json).
+        also load a saved 8BEETY project (.json).
       </p>
       <input
         ref={inputRef}

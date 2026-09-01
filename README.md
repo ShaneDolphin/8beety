@@ -1,9 +1,9 @@
-# Chiptune Composer
+# 8BEETY
 
 Turn any MIDI file into music that sounds like it came out of an NES or a Game Boy — in your
 browser, in seconds, with no login and no server.
 
-![Chiptune Composer](docs/img/screenshot.jpg)
+![8BEETY](docs/img/screenshot.jpg)
 
 Drop in a `.mid`, and the auto-arranger assigns your tracks to real chip channels: melodies to the
 pulse channels, bass to the triangle (or the Game Boy's wavetable), drums to the noise LFSR. Chords

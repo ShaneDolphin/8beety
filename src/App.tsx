@@ -28,9 +28,9 @@ export default function App() {
         try {
           const decoded = decodeProjectFile(JSON.parse(await file.text()));
           if (decoded) useStore.getState().loadProjectFile(decoded);
-          else useStore.getState().showToast("Not a valid Chiptune Composer project file.");
+          else useStore.getState().showToast("Not a valid 8BEETY project file.");
         } catch {
-          useStore.getState().showToast("Not a valid Chiptune Composer project file.");
+          useStore.getState().showToast("Not a valid 8BEETY project file.");
         }
       }
     }
