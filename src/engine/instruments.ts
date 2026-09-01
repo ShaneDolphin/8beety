@@ -102,3 +102,45 @@ export function getPreset(id: string): Instrument {
 export function presetsForKind(kind: ChannelDef["kind"]): Instrument[] {
   return PRESETS.filter((p) => p.kinds.includes(kind));
 }
+
+// §5 minimal instrument tweaks: duty, attack/decay (rewrites the volume macro
+// from two numbers), vibrato depth and delay. No full macro editor in v1.
+export type InstrumentTweaks = {
+  duty?: number;
+  attack?: number; // frames ramping 0 → preset peak
+  decay?: number; // frames falling peak → 0; 0 = sustain at peak
+  vibratoDepth?: number; // timer units; 0 removes vibrato
+  vibratoDelay?: number; // frames before vibrato starts
+};
+
+export function applyTweaks(inst: Instrument, tweaks?: InstrumentTweaks): Instrument {
+  if (!tweaks) return inst;
+  const out: Instrument = { ...inst };
+  if (tweaks.duty !== undefined && inst.kinds.includes("pulse")) {
+    out.duty = { values: [tweaks.duty] };
+  }
+  if (tweaks.attack !== undefined || tweaks.decay !== undefined) {
+    const peak = Math.max(...inst.volume.values);
+    const attack = tweaks.attack ?? 0;
+    const decay = tweaks.decay ?? 0;
+    const values: number[] = [];
+    for (let i = 0; i < attack; i++) values.push(Math.round(((i + 1) / (attack + 1)) * peak));
+    values.push(peak);
+    for (let i = 1; i <= decay; i++) values.push(Math.round(peak * (1 - i / decay)));
+    out.volume = { values };
+  }
+  if (tweaks.vibratoDepth !== undefined) {
+    if (tweaks.vibratoDepth <= 0) {
+      out.pitch = undefined;
+    } else {
+      const d = tweaks.vibratoDepth;
+      const half = Math.round(d / 2);
+      const delay = tweaks.vibratoDelay ?? 20;
+      out.pitch = {
+        values: [...Array<number>(delay).fill(0), 0, half, d, half, 0, -half, -d, -half],
+        loop: delay,
+      };
+    }
+  }
+  return out;
+}
