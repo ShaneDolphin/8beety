@@ -23,7 +23,7 @@ export default function Header() {
   const bar = script ? script.barStarts.filter((b) => b <= frame).length : 1;
 
   return (
-    <header className="flex items-center gap-4 border-b border-zinc-800 bg-zinc-900 px-4 py-2">
+    <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-800 bg-zinc-900 px-4 py-2">
       <span className="font-bold tracking-tight">Chiptune Composer</span>
       <span className="max-w-48 truncate text-sm text-zinc-400" title={song.name}>
         {song.name}

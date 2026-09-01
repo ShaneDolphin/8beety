@@ -57,7 +57,7 @@ export default function ChipRack() {
   if (!project) return null;
   const profile = PROFILES[project.chip === "gb" ? "gb" : "nes"];
   return (
-    <div className="flex gap-2 border-b border-zinc-800 bg-zinc-900/60 px-4 py-2">
+    <div className="flex gap-2 overflow-x-auto border-b border-zinc-800 bg-zinc-900/60 px-4 py-2">
       {profile.channels.map((c) => (
         <RackCard key={c.id} def={c} />
       ))}
