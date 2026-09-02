@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { COFFEE_URL } from "../config";
+import { profileFor, type PlayableChip } from "../engine/chip-profiles";
 import { useStore } from "../store";
 import AboutPanel from "./AboutPanel";
 import ExportMenu from "./ExportMenu";
@@ -59,17 +60,23 @@ export default function Header() {
         />
       )}
       <select
-        value={project.chip === "gb" ? "gb" : "nes"}
-        onChange={(e) => setChip(e.target.value as "nes" | "gb")}
+        value={profileFor(project.chip).id}
+        onChange={(e) => setChip(e.target.value as PlayableChip)}
         title="Chip"
         className={`rounded border px-2 py-0.5 font-mono text-xs ${
           project.chip === "gb"
             ? "border-lime-800 bg-lime-950 text-lime-300"
-            : "border-red-900 bg-zinc-800 text-zinc-200"
+            : project.chip === "snes"
+              ? "border-purple-800 bg-purple-950 text-purple-300"
+              : project.chip === "sega"
+                ? "border-blue-800 bg-blue-950 text-blue-300"
+                : "border-red-900 bg-zinc-800 text-zinc-200"
         }`}
       >
         <option value="nes">NES</option>
         <option value="gb">GB</option>
+        <option value="snes">SNES</option>
+        <option value="sega">SEGA</option>
       </select>
 
       <label className="ml-2 flex items-center gap-1 text-sm text-zinc-400">

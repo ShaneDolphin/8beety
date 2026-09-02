@@ -3,7 +3,7 @@ import { auditionInstrument } from "./audio/audition";
 import { ApuPlayer } from "./audio/player";
 import { assignTrackToSlot, loopFrames, remapForChip } from "./engine/arrange-ops";
 import { compile, type CompileWarning } from "./engine/compile";
-import { PROFILES } from "./engine/chip-profiles";
+import { profileFor, type PlayableChip } from "./engine/chip-profiles";
 import type { FrameScript } from "./engine/frame-script";
 import { parseMidi } from "./engine/midi-import";
 import { autoArrange } from "./engine/auto-arrange";
@@ -39,7 +39,7 @@ type AppState = {
   loadProjectFile: (decoded: DecodedProjectFile) => void;
   buildProjectFile: (maxMidiBytes?: number) => { file: ProjectFile; midiOmitted: boolean } | null;
   setBpm: (bpm: number) => void;
-  setChip: (chip: "nes" | "gb") => void;
+  setChip: (chip: PlayableChip) => void;
   updateTrack: (id: string, patch: Partial<TrackArrangement>) => void;
   assignToSlot: (trackId: string, slotId: string) => void;
   chordAssistTrackId: string | null;
@@ -76,7 +76,7 @@ export const useStore = create<AppState>()((set, get) => {
     const { song, project } = get();
     if (!song || !project) return;
     const t0 = performance.now();
-    const profile = PROFILES[project.chip === "gb" ? "gb" : "nes"];
+    const profile = profileFor(project.chip);
     const { script, warnings } = compile(song, project, profile);
     const compileMs = performance.now() - t0;
     if (import.meta.env.DEV) console.log(`compile: ${compileMs.toFixed(1)} ms`);
@@ -126,7 +126,7 @@ export const useStore = create<AppState>()((set, get) => {
       const ctx = player.context;
       if (!ctx) return;
       await ctx.resume();
-      auditionInstrument(ctx, instrumentId, slotId, project.chip === "gb" ? "gb" : "nes");
+      auditionInstrument(ctx, instrumentId, slotId, project.chip === "nes-vrc6" ? "nes" : project.chip);
     },
 
     addDerivedTrack: (track) => {

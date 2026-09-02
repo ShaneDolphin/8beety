@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { PROFILES } from "../engine/chip-profiles";
+import { profileFor } from "../engine/chip-profiles";
 import { drawGbFrame } from "../viz/gb-render";
 import { lanesFor } from "../viz/lanes";
 import { useStore } from "../store";
@@ -17,7 +17,7 @@ export default function GameBoyView() {
 
   const lanes = useMemo(() => {
     if (!project) return [];
-    return lanesFor(project, PROFILES[project.chip === "gb" ? "gb" : "nes"]);
+    return lanesFor(project, profileFor(project.chip));
   }, [project]);
 
   const clock = useRef({ frame: 0, at: 0 });

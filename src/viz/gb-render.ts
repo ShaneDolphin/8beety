@@ -83,11 +83,13 @@ export function drawGbFrame(
   // Lanes.
   const laneTop = px * 18;
   const laneGap = px * 2;
-  const laneH = Math.floor((h - laneTop - px * 3 - laneGap * 3) / 4);
+  const laneCount = Math.min(lanes.length, script.channels.length);
+  const laneH = Math.floor((h - laneTop - px * 3 - laneGap * (laneCount - 1)) / laneCount);
+  const smallText = laneCount > 4;
   const playheadX = Math.floor(w * PLAYHEAD_AT);
   const clampedFrame = Math.max(0, Math.min(script.frameCount - 1, Math.floor(frame)));
 
-  for (let li = 0; li < 4; li++) {
+  for (let li = 0; li < laneCount; li++) {
     const ch = script.channels[li];
     const lane = lanes[li];
     if (!ch || !lane) continue;
@@ -101,23 +103,23 @@ export function drawGbFrame(
 
     // Label + sub-label + live note readout.
     g.fillStyle = active ? c3 : c2;
-    g.font = `bold ${px * 4}px Quantico, monospace`;
+    g.font = `bold ${px * (smallText ? 3 : 4)}px Quantico, monospace`;
     g.fillText(lane.label, px * 4, top + px * 2);
     if (lane.trackName) {
       g.fillStyle = c2;
-      g.font = `${px * 3}px Quantico, monospace`;
+      g.font = `${px * (smallText ? 2 : 3)}px Quantico, monospace`;
       g.fillText(lane.trackName.slice(0, 18).toUpperCase(), px * 4, top + px * 7);
     }
     if (active && lane.kind === "pitch") {
       g.fillStyle = c3;
-      g.font = `bold ${px * 4}px Quantico, monospace`;
+      g.font = `bold ${px * (smallText ? 3 : 4)}px Quantico, monospace`;
       g.textAlign = "right";
       g.fillText(noteName(script.chip, li, ch.period[clampedFrame]), w - px * 4, top + px * 2);
       g.textAlign = "left";
     }
 
     // Scrolling note strip.
-    const stripTop = top + px * 12;
+    const stripTop = smallText ? top + px * 8 : top + px * 12;
     const stripH = laneH - px * 14;
     if (stripH < px * 2) continue;
     const [lo, hi] = periodRange(ch);

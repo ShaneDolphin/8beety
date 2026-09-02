@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PROFILES } from "../engine/chip-profiles";
+import { profileFor } from "../engine/chip-profiles";
 import { presetsForKind, type InstrumentTweaks } from "../engine/instruments";
 import type { LayerMode, TrackArrangement } from "../engine/project";
 import type { SourceTrack } from "../engine/song";
@@ -12,6 +12,20 @@ const CHIP_LABELS: Record<string, string> = {
   tri: "TRI",
   wave: "WAV",
   noise: "NOI",
+  dac: "DAC",
+  fm1: "FM1",
+  fm2: "FM2",
+  fm3: "FM3",
+  fm4: "FM4",
+  fm5: "FM5",
+  v1: "V1",
+  v2: "V2",
+  v3: "V3",
+  v4: "V4",
+  v5: "V5",
+  v6: "V6",
+  v7: "V7",
+  v8: "V8",
 };
 
 const LAYER_OPTIONS: { value: LayerMode; label: string }[] = [
@@ -66,8 +80,8 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
   const setFocused = useStore((s) => s.setFocused);
   const focused = useStore((s) => s.focusedIndex) === index;
   const warnings = useStore((s) => s.warnings).filter((w) => w.trackId === arr.id);
-  const chip = useStore((s) => s.project?.chip) === "gb" ? "gb" : "nes";
-  const profile = PROFILES[chip];
+  const chip = useStore((s) => s.project?.chip) ?? "nes";
+  const profile = profileFor(chip);
 
   const firstSlotDef = profile.channels.find((c) => c.id === arr.slots[0]);
   const presets = firstSlotDef ? presetsForKind(firstSlotDef.kind) : [];

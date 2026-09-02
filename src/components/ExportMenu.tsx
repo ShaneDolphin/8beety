@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { COFFEE_URL } from "../config";
 import { renderScript } from "../audio/render";
-import { PROFILES } from "../engine/chip-profiles";
+import { profileFor } from "../engine/chip-profiles";
 import { lanesFor } from "../viz/lanes";
 import { exportGbVideo } from "../viz/video-export";
 import { encodeWav } from "../audio/wav";
@@ -39,7 +39,7 @@ export default function ExportMenu() {
     setBusy("Rendering audio…");
     try {
       const channels = await renderScript(script, 44100);
-      const lanes = lanesFor(project, PROFILES[project.chip === "gb" ? "gb" : "nes"]);
+      const lanes = lanesFor(project, profileFor(project.chip));
       const { blob, ext } = await exportGbVideo(
         script,
         lanes,

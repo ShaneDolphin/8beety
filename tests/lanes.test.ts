@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GB_PROFILE, NES_PROFILE } from "../src/engine/chip-profiles";
+import { GB_PROFILE, NES_PROFILE, SEGA_PROFILE, SNES_PROFILE } from "../src/engine/chip-profiles";
 import type { Project, TrackArrangement } from "../src/engine/project";
 import { lanesFor } from "../src/viz/lanes";
 
@@ -71,5 +71,12 @@ describe("lanesFor", () => {
   it("labels the GB wave channel as the bass lane", () => {
     const lanes = lanesFor(project([]), GB_PROFILE);
     expect(lanes.map((l) => l.label)).toEqual(["VOCALS", "GUITAR", "BASS", "DRUMS"]);
+  });
+
+  it("produces one lane per channel for 16-bit chips", () => {
+    const p = project([]); // existing helper in this file
+    expect(lanesFor(p, SEGA_PROFILE)).toHaveLength(6);
+    expect(lanesFor(p, SNES_PROFILE)).toHaveLength(8);
+    expect(lanesFor(p, SEGA_PROFILE)[5].kind).toBe("drums");
   });
 });

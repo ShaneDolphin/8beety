@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ChannelDef } from "../engine/chip-profiles";
-import { PROFILES } from "../engine/chip-profiles";
+import { profileFor } from "../engine/chip-profiles";
 import { PRESETS } from "../engine/instruments";
 import { useStore } from "../store";
 
@@ -55,7 +55,7 @@ function RackCard({ def }: { def: ChannelDef }) {
 export default function ChipRack() {
   const project = useStore((s) => s.project);
   if (!project) return null;
-  const profile = PROFILES[project.chip === "gb" ? "gb" : "nes"];
+  const profile = profileFor(project.chip);
   return (
     <div className="flex gap-2 overflow-x-auto border-b border-zinc-800 bg-zinc-900/60 px-4 py-2">
       {profile.channels.map((c) => (
