@@ -517,6 +517,8 @@ Layout: a single page, three horizontal bands.
 - Download arranged MIDI (the compiled output rendered back to MIDI, one track per channel, arpeggios written out as fast notes; useful for people who want to take it into a real DAW)
 - Copy share link (project JSON compressed with `lz-string` into the URL fragment; the MIDI itself is embedded as base64 inside the project JSON when under 100 KB, else the share link warns that the recipient must supply the MIDI)
 
+The 9:16 video export's console art follows the chip: DMG handheld for nes/gb, console-on-the-bottom-third for snes/sega (see docs/superpowers/specs/2026-09-02-16bit-export-shells-design.md).
+
 ### 10.3 Visual style
 
 Dense, utilitarian, dark by default. Monospace numerals for BPM and bars. Pixel-art accents are fine in the logo and rack cards; do not pixelate body text. Do not use or draw any Nintendo, Sega, Game Boy, NES, SNES, or Genesis logos, characters, or trade dress. The Game Boy profile can be tinted olive-green, the NES profile gray-and-red, the Sega Genesis profile blue, and the SNES profile purple as a nod without copying any hardware design.
