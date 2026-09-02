@@ -46,3 +46,36 @@ export function gbWavePeriod(freq: number): number | null {
 export function gbWaveFreq(x: number): number {
   return 65536 / (2048 - x);
 }
+
+// ---- YM2612 (Sega Genesis) ----
+// freq = fnum * 2^(block-1) * YM_FNUM_HZ. Pack (block<<11)|fnum into the
+// 16-bit period array; the fnum quantization is the chip's real detune.
+export const YM_FNUM_HZ = 7670453 / (144 * 2 ** 20);
+
+export function ymPack(freq: number): number | null {
+  for (let block = 0; block < 8; block++) {
+    const fnum = Math.round(freq / (YM_FNUM_HZ * 2 ** (block - 1)));
+    if (fnum >= 1 && fnum <= 2047) return (block << 11) | fnum;
+  }
+  return null;
+}
+
+export function ymFreq(packed: number): number {
+  const block = packed >> 11;
+  const fnum = packed & 0x7ff;
+  return fnum * 2 ** (block - 1) * YM_FNUM_HZ;
+}
+
+// ---- SPC700 (SNES) ----
+// 14-bit pitch register; 0x1000 = 1.0x. Samples are authored at C4.
+export const SPC_BASE_HZ = 261.6256;
+
+export function spcPitch(freq: number): number | null {
+  const p = Math.round((freq / SPC_BASE_HZ) * 0x1000);
+  if (p < 1 || p > 0x3fff) return null;
+  return p;
+}
+
+export function spcFreq(pitch: number): number {
+  return (pitch / 0x1000) * SPC_BASE_HZ;
+}
