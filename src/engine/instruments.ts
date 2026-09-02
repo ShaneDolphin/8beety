@@ -93,6 +93,13 @@ PRESETS.push(
   { id: "organ", name: "Organ", kinds: ["wave"], volume: sustain(15), duty: sustain(2) },
 );
 
+// Minimal presets for the 16-bit chips (Task 7 adds the full set). `duty`
+// here selects the patch/sample bank index (0), not a pulse duty cycle.
+PRESETS.push(
+  { id: "fm-epiano", name: "FM E.Piano", kinds: ["fm"], volume: sustain(12), duty: sustain(0) },
+  { id: "spc-strings", name: "Strings", kinds: ["sample"], volume: sustain(12), duty: sustain(0) },
+);
+
 export function getPreset(id: string): Instrument {
   const p = PRESETS.find((x) => x.id === id);
   if (!p) throw new Error(`Unknown instrument preset: ${id}`);

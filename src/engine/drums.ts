@@ -67,3 +67,52 @@ export function gmDrumPreset(gmNote: number): DrumPreset {
   if (!preset) throw new Error("drum kit misconfigured");
   return preset;
 }
+
+// Sampled kit (Sega DAC / SNES voice drums). Index values mirror
+// `SAMPLE_INDEX` in the worklet's sample bank; a unit test pins them so the
+// two files cannot drift.
+export const SAMPLED_DRUM_INDEX = {
+  kick: 7,
+  snare: 8,
+  hatClosed: 9,
+  hatOpen: 10,
+  crash: 11,
+  tom: 12,
+} as const;
+
+// 14-bit SPC pitch units; 0x1000 = 1.0x (the sample's authored pitch).
+const BASE_PITCH = 0x1000;
+const TOM_LOW_PITCH = 0x0c00;
+const TOM_MID_PITCH = 0x1000;
+const TOM_HIGH_PITCH = 0x1400;
+
+type SampledDrum = { index: number; pitch: number; frames: number };
+
+const SAMPLED_GM_MAP: Record<number, SampledDrum> = {
+  35: { index: SAMPLED_DRUM_INDEX.kick, pitch: BASE_PITCH, frames: 10 },
+  36: { index: SAMPLED_DRUM_INDEX.kick, pitch: BASE_PITCH, frames: 10 },
+  38: { index: SAMPLED_DRUM_INDEX.snare, pitch: BASE_PITCH, frames: 12 },
+  40: { index: SAMPLED_DRUM_INDEX.snare, pitch: BASE_PITCH, frames: 12 },
+  41: { index: SAMPLED_DRUM_INDEX.tom, pitch: TOM_LOW_PITCH, frames: 12 },
+  43: { index: SAMPLED_DRUM_INDEX.tom, pitch: TOM_LOW_PITCH, frames: 12 },
+  45: { index: SAMPLED_DRUM_INDEX.tom, pitch: TOM_MID_PITCH, frames: 12 },
+  47: { index: SAMPLED_DRUM_INDEX.tom, pitch: TOM_MID_PITCH, frames: 12 },
+  48: { index: SAMPLED_DRUM_INDEX.tom, pitch: TOM_HIGH_PITCH, frames: 12 },
+  50: { index: SAMPLED_DRUM_INDEX.tom, pitch: TOM_HIGH_PITCH, frames: 12 },
+  42: { index: SAMPLED_DRUM_INDEX.hatClosed, pitch: BASE_PITCH, frames: 6 },
+  44: { index: SAMPLED_DRUM_INDEX.hatClosed, pitch: BASE_PITCH, frames: 6 },
+  46: { index: SAMPLED_DRUM_INDEX.hatOpen, pitch: BASE_PITCH, frames: 15 },
+  49: { index: SAMPLED_DRUM_INDEX.crash, pitch: BASE_PITCH, frames: 40 },
+  52: { index: SAMPLED_DRUM_INDEX.crash, pitch: BASE_PITCH, frames: 40 },
+  55: { index: SAMPLED_DRUM_INDEX.crash, pitch: BASE_PITCH, frames: 40 },
+  57: { index: SAMPLED_DRUM_INDEX.crash, pitch: BASE_PITCH, frames: 40 },
+  51: { index: SAMPLED_DRUM_INDEX.hatClosed, pitch: BASE_PITCH, frames: 20 }, // ride: closed hat, longer decay
+  53: { index: SAMPLED_DRUM_INDEX.hatClosed, pitch: BASE_PITCH, frames: 20 },
+  59: { index: SAMPLED_DRUM_INDEX.hatClosed, pitch: BASE_PITCH, frames: 20 },
+};
+
+const DEFAULT_SAMPLED_DRUM: SampledDrum = { index: SAMPLED_DRUM_INDEX.hatClosed, pitch: BASE_PITCH, frames: 6 };
+
+export function sampledDrumFor(gmNote: number): SampledDrum {
+  return SAMPLED_GM_MAP[gmNote] ?? DEFAULT_SAMPLED_DRUM;
+}
