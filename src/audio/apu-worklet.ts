@@ -242,7 +242,7 @@ export class ApuCore {
 
   private readonly sampleRate: number;
   private script: FrameScript | null = null;
-  private chip: "nes" | "gb" | "nes-vrc6" = "nes";
+  private chip: "nes" | "gb" | "nes-vrc6" | "sega" | "snes" = "nes";
   private samplesUntilFrame = 0;
   private loop: [number, number] | null = null;
   private readonly pulse1: PulseChannel;

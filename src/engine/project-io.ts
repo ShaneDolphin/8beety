@@ -42,7 +42,7 @@ const trackSchema = z.object({
 
 const projectSchema = z.object({
   version: z.literal(1),
-  chip: z.enum(["nes", "gb", "nes-vrc6"]),
+  chip: z.enum(["nes", "gb", "nes-vrc6", "sega", "snes"]),
   bpm: z.number().min(40).max(300),
   tempoMode: z.enum(["flatten", "scale"]),
   transpose: z.number().int(),

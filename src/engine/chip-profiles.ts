@@ -1,7 +1,7 @@
 export type ChannelDef = {
   id: string; // "p1", "p2", "tri", "noise", "dmc", "wave", "saw"
   label: string; // "Pulse 1"
-  kind: "pulse" | "triangle" | "noise" | "dpcm" | "wave" | "saw";
+  kind: "pulse" | "triangle" | "noise" | "dpcm" | "wave" | "saw" | "fm" | "sample";
   hasVolume: boolean;
   duties?: number[]; // fraction of period, e.g. [0.125, 0.25, 0.5, 0.75]
   midiRange: [number, number];
@@ -9,11 +9,13 @@ export type ChannelDef = {
 };
 
 export type ChipProfile = {
-  id: "nes" | "gb" | "nes-vrc6";
+  id: "nes" | "gb" | "nes-vrc6" | "sega" | "snes";
   name: string;
   stereo: boolean;
   channels: ChannelDef[];
 };
+
+export type PlayableChip = "nes" | "gb" | "sega" | "snes";
 
 const PULSE_DUTIES = [0.125, 0.25, 0.5, 0.75];
 
@@ -71,7 +73,37 @@ export const NES_PROFILE: ChipProfile = {
   ],
 };
 
-export const PROFILES: Record<"nes" | "gb", ChipProfile> = {
-  nes: NES_PROFILE,
-  gb: GB_PROFILE,
+const fmLane = (n: number): ChannelDef => ({
+  id: `fm${n}`, label: `FM ${n}`, kind: "fm", hasVolume: true,
+  midiRange: [24, 108], acceptsDrums: false,
+});
+
+export const SEGA_PROFILE: ChipProfile = {
+  id: "sega",
+  name: "Sega Genesis YM2612",
+  stereo: true,
+  channels: [
+    fmLane(1), fmLane(2), fmLane(3), fmLane(4), fmLane(5),
+    { id: "dac", label: "DAC Drums", kind: "sample", hasVolume: true, midiRange: [0, 127], acceptsDrums: true },
+  ],
 };
+
+const spcVoice = (n: number): ChannelDef => ({
+  id: `v${n}`, label: `Voice ${n}`, kind: "sample", hasVolume: true,
+  midiRange: [24, 108], acceptsDrums: true,
+});
+
+export const SNES_PROFILE: ChipProfile = {
+  id: "snes",
+  name: "Super Nintendo SPC700",
+  stereo: true,
+  channels: [1, 2, 3, 4, 5, 6, 7, 8].map(spcVoice),
+};
+
+export const PROFILES: Record<PlayableChip, ChipProfile> = {
+  nes: NES_PROFILE, gb: GB_PROFILE, sega: SEGA_PROFILE, snes: SNES_PROFILE,
+};
+
+export function profileFor(chip: ChipProfile["id"]): ChipProfile {
+  return chip === "nes-vrc6" ? NES_PROFILE : PROFILES[chip];
+}
