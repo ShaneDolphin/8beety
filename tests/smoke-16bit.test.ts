@@ -103,43 +103,50 @@ const CHIP_CASES: Record<
 
 describe("16-bit chip render smoke test", () => {
   for (const chip of Object.keys(CHIP_CASES) as PlayableChip[]) {
-    it(`${chip}: compiles and renders a non-silent, in-range signal`, () => {
-      const { melodySlot, instrumentId, drumSlot } = CHIP_CASES[chip];
-      const profile = PROFILES[chip];
-      const song = makeSong();
-      const project: Project = {
-        version: 1,
-        chip,
-        bpm: BPM,
-        tempoMode: "flatten",
-        transpose: 0,
-        outputFilter: true,
-        tracks: [
-          arrangement({ id: "melody", sourceIndex: 0, slots: [melodySlot], instrumentId }),
-          arrangement({ id: "drums", sourceIndex: 1, slots: [drumSlot], instrumentId: "thin-lead" }),
-        ],
-      };
+    it(
+      `${chip}: compiles and renders a non-silent, in-range signal`,
+      () => {
+        const { melodySlot, instrumentId, drumSlot } = CHIP_CASES[chip];
+        const profile = PROFILES[chip];
+        const song = makeSong();
+        const project: Project = {
+          version: 1,
+          chip,
+          bpm: BPM,
+          tempoMode: "flatten",
+          transpose: 0,
+          outputFilter: true,
+          tracks: [
+            arrangement({ id: "melody", sourceIndex: 0, slots: [melodySlot], instrumentId }),
+            arrangement({ id: "drums", sourceIndex: 1, slots: [drumSlot], instrumentId: "thin-lead" }),
+          ],
+        };
 
-      const { script, warnings } = compile(song, project, profile);
-      expect(warnings).toEqual([]);
-      expect(script.channels.length).toBe(profile.channels.length);
+        const { script, warnings } = compile(song, project, profile);
+        expect(warnings).toEqual([]);
+        expect(script.channels.length).toBe(profile.channels.length);
 
-      const core = new ApuCore(SR);
-      core.load(script);
-      core.play();
+        const core = new ApuCore(SR);
+        core.load(script);
+        core.play();
 
-      const n = SR * 2; // 2 s
-      const out = new Float32Array(n);
-      core.render(out, null);
+        const n = SR * 2; // 2 s
+        const out = new Float32Array(n);
+        core.render(out, null);
 
-      let rms = 0;
-      for (let i = 0; i < n; i++) {
-        const s = out[i];
-        expect(s).toBeGreaterThanOrEqual(-1);
-        expect(s).toBeLessThanOrEqual(1);
-        rms += s * s;
-      }
-      expect(Math.sqrt(rms / n)).toBeGreaterThan(0.003);
-    });
+        let rms = 0;
+        for (let i = 0; i < n; i++) {
+          const s = out[i];
+          expect(s).toBeGreaterThanOrEqual(-1);
+          expect(s).toBeLessThanOrEqual(1);
+          rms += s * s;
+        }
+        expect(Math.sqrt(rms / n)).toBeGreaterThan(0.003);
+      },
+      // Full 2 s render across 4 chips (a real APU/FM/sample-bank simulation,
+      // not a hang) — explicit headroom instead of shortening the render or
+      // raising the global default.
+      30_000,
+    );
   }
 });

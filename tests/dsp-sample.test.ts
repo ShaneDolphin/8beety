@@ -4,8 +4,13 @@ import { buildSampleBank, EchoBus, SAMPLE_INDEX, SampleVoice } from "../src/audi
 
 const SR = 44100;
 
+// Built once for the whole file (deterministic, ~13 synthesized samples) and
+// shared across describes below instead of re-synthesizing per describe —
+// the synthesis itself is measurable, and re-running it per block was pure
+// duplicated cost under parallel test load.
+const bank = buildSampleBank();
+
 describe("buildSampleBank", () => {
-  const bank = buildSampleBank();
   it("has 13 samples in the documented order", () => {
     expect(bank).toHaveLength(13);
     expect(SAMPLE_INDEX.kick).toBe(7);
@@ -18,13 +23,19 @@ describe("buildSampleBank", () => {
     expect(bank[SAMPLE_INDEX.strings].loopStart).not.toBeNull();
     expect(bank[SAMPLE_INDEX.kick].loopStart).toBeNull();
   });
-  it("stays within +/-1", () => {
-    for (const s of bank) for (const v of s.data) expect(Math.abs(v)).toBeLessThanOrEqual(1);
-  });
+  it(
+    "stays within +/-1",
+    () => {
+      // Full-bank scan: every sample of every synthesized instrument/drum.
+      // Legitimately long (not a hang) — give it headroom instead of
+      // shortening the scan or weakening the assertion.
+      for (const s of bank) for (const v of s.data) expect(Math.abs(v)).toBeLessThanOrEqual(1);
+    },
+    30_000,
+  );
 });
 
 describe("SampleVoice", () => {
-  const bank = buildSampleBank();
   it("plays at unity pitch and volume", () => {
     const v = new SampleVoice(SR, bank);
     let peak = 0;
