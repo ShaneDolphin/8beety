@@ -370,6 +370,117 @@ export class ApuCore {
   }
 }
 
+// ---- Sega Genesis YM2612 ----
+// 4-operator FM, style model: sine operators, per-op multiple/detune/level and
+// a linear-segment ADSR, op-1 feedback, the chip's 8 algorithm topologies.
+// ar/dr/rr are seconds-to-traverse, converted to per-sample deltas.
+
+export type FmOpPatch = {
+  mult: number; // frequency multiple (0.5, 1..15)
+  detune: number; // +/- cents
+  tl: number; // output level 0..1
+  ar: number; // attack time (s) 0 -> 1
+  dr: number; // decay time (s) 1 -> sl
+  sl: number; // sustain level 0..1
+  rr: number; // release time (s) level -> 0
+};
+
+export type FmPatch = {
+  name: string;
+  algorithm: number; // 0..7, YM2612 topologies
+  feedback: number; // 0..7, op1 self-modulation
+  ops: [FmOpPatch, FmOpPatch, FmOpPatch, FmOpPatch];
+};
+
+const op = (mult: number, detune: number, tl: number, ar: number, dr: number, sl: number, rr: number): FmOpPatch =>
+  ({ mult, detune, tl, ar, dr, sl, rr });
+
+export const FM_PATCHES: FmPatch[] = [
+  { name: "FM E.Piano", algorithm: 4, feedback: 3, ops: [op(1, 0, 0.35, 0.004, 0.9, 0.0, 0.15), op(14, 0, 0.18, 0.002, 0.25, 0.0, 0.1), op(1, 3, 0.35, 0.004, 1.4, 0.1, 0.2), op(1, -3, 0.4, 0.002, 0.6, 0.0, 0.15)] },
+  { name: "FM Bass", algorithm: 3, feedback: 5, ops: [op(0.5, 0, 0.5, 0.004, 0.3, 0.3, 0.08), op(1, 0, 0.45, 0.004, 0.25, 0.1, 0.08), op(1, 0, 0.35, 0.004, 0.2, 0.0, 0.08), op(0.5, 0, 0.95, 0.004, 0.5, 0.45, 0.1)] },
+  { name: "FM Brass", algorithm: 4, feedback: 6, ops: [op(1, 2, 0.55, 0.05, 0.8, 0.55, 0.12), op(1, -2, 0.5, 0.07, 0.8, 0.5, 0.12), op(1, 5, 0.85, 0.06, 1.0, 0.7, 0.15), op(1, -5, 0.85, 0.08, 1.0, 0.7, 0.15)] },
+  { name: "FM Bell", algorithm: 5, feedback: 2, ops: [op(1, 0, 0.5, 0.002, 2.5, 0.0, 0.6), op(3.5, 4, 0.4, 0.002, 1.2, 0.0, 0.4), op(1, 0, 0.7, 0.002, 2.0, 0.0, 0.6), op(7, -4, 0.3, 0.002, 0.8, 0.0, 0.3)] },
+  { name: "FM Lead", algorithm: 4, feedback: 7, ops: [op(1, 4, 0.6, 0.01, 0.5, 0.65, 0.1), op(2, 0, 0.45, 0.01, 0.6, 0.4, 0.1), op(1, -4, 0.9, 0.01, 0.7, 0.75, 0.12), op(2, 7, 0.5, 0.01, 0.5, 0.45, 0.1)] },
+  { name: "FM Organ", algorithm: 7, feedback: 0, ops: [op(1, 0, 0.8, 0.005, 0.1, 0.8, 0.06), op(2, 2, 0.55, 0.005, 0.1, 0.55, 0.06), op(3, -2, 0.35, 0.005, 0.1, 0.35, 0.06), op(4, 0, 0.25, 0.005, 0.1, 0.25, 0.06)] },
+  { name: "FM Strings", algorithm: 2, feedback: 4, ops: [op(1, 6, 0.4, 0.25, 1.2, 0.6, 0.35), op(2, 0, 0.3, 0.2, 1.0, 0.4, 0.3), op(1, -6, 0.85, 0.3, 1.5, 0.75, 0.4), op(1, 10, 0.35, 0.2, 1.0, 0.5, 0.3)] },
+  { name: "FM Pluck", algorithm: 4, feedback: 5, ops: [op(1, 0, 0.7, 0.002, 0.35, 0.0, 0.1), op(3, 3, 0.5, 0.002, 0.15, 0.0, 0.08), op(1, 0, 0.9, 0.002, 0.5, 0.0, 0.12), op(2, -3, 0.45, 0.002, 0.2, 0.0, 0.08)] },
+];
+
+class FmOperator {
+  phase = 0;
+  env = 0;
+  private stage: 0 | 1 | 2 | 3 = 3; // attack/decay/sustain/release
+  keyOn(): void { this.stage = 0; this.env = 0; this.phase = 0; }
+  keyOff(): void { if (this.stage !== 3) this.stage = 3; }
+  // dt = 1/sampleRate; returns sin(2π·phase + mod·modIndex) · env · tl
+  tick(p: FmOpPatch, freq: number, mod: number, dt: number): number {
+    const f = freq * p.mult * 2 ** (p.detune / 1200);
+    this.phase = (this.phase + f * dt) % 1;
+    if (this.stage === 0) {
+      this.env += dt / Math.max(1e-4, p.ar);
+      if (this.env >= 1) { this.env = 1; this.stage = 1; }
+    } else if (this.stage === 1) {
+      this.env -= dt * ((1 - p.sl) / Math.max(1e-4, p.dr));
+      if (this.env <= p.sl) { this.env = p.sl; this.stage = 2; }
+    } else if (this.stage === 3) {
+      this.env -= dt / Math.max(1e-4, p.rr);
+      if (this.env < 0) this.env = 0;
+    }
+    return Math.sin(2 * Math.PI * this.phase + mod) * this.env * p.tl;
+  }
+}
+
+// YM2612 algorithms as (carrier mask, modulation edges m->c). Op order 0..3
+// is the chip's slot order 1,3,2,4 simplified to a linear 0..3 chain layout.
+const FM_ALGS: { carriers: number[]; routes: [number, number][] }[] = [
+  { carriers: [3], routes: [[0, 1], [1, 2], [2, 3]] },
+  { carriers: [3], routes: [[0, 2], [1, 2], [2, 3]] },
+  { carriers: [3], routes: [[0, 3], [1, 2], [2, 3]] },
+  { carriers: [3], routes: [[0, 1], [1, 3], [2, 3]] },
+  { carriers: [1, 3], routes: [[0, 1], [2, 3]] },
+  { carriers: [1, 2, 3], routes: [[0, 1], [0, 2], [0, 3]] },
+  { carriers: [1, 2, 3], routes: [[0, 1]] },
+  { carriers: [0, 1, 2, 3], routes: [] },
+];
+
+export class FmChannel {
+  private readonly dt: number;
+  private readonly ops = [new FmOperator(), new FmOperator(), new FmOperator(), new FmOperator()];
+  private fb1 = 0; // op0 previous output for feedback
+  private held = false;
+
+  constructor(sampleRate: number) {
+    this.dt = 1 / sampleRate;
+  }
+
+  sample(packedFreq: number, volume: number, patchIndex: number, trig: boolean): number {
+    const patch = FM_PATCHES[patchIndex & 7];
+    if (trig && volume > 0) {
+      for (const o of this.ops) o.keyOn();
+      this.held = true;
+    }
+    if (volume === 0 && this.held) {
+      for (const o of this.ops) o.keyOff();
+      this.held = false;
+    }
+    if (packedFreq === 0) return 0;
+    const freq = (packedFreq & 0x7ff) * 2 ** ((packedFreq >> 11) - 1) * (7670453 / (144 * 2 ** 20));
+    const alg = FM_ALGS[patch.algorithm & 7];
+    const outs = [0, 0, 0, 0];
+    let mix = 0;
+    for (let i = 0; i < 4; i++) {
+      let mod = 0;
+      for (const [m, c] of alg.routes) if (c === i) mod += outs[m] * Math.PI * 2;
+      if (i === 0 && patch.feedback > 0) mod += this.fb1 * Math.PI * (patch.feedback / 7);
+      outs[i] = this.ops[i].tick(patch.ops[i], freq, mod, this.dt);
+      if (i === 0) this.fb1 = outs[0];
+      if (alg.carriers.includes(i)) mix += outs[i];
+    }
+    const gain = this.held || volume > 0 ? volume : 15; // release rides last volume; scale by 15 during release
+    return (mix / alg.carriers.length) * gain;
+  }
+}
+
 // The processor itself only exists inside a real AudioWorklet global scope;
 // the guard lets Node (Vitest) import the pure DSP above without crashing.
 if (typeof AudioWorkletProcessor !== "undefined") {
