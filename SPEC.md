@@ -169,7 +169,7 @@ Eight voices, stereo, all sample playback.
 |---|---|---|---|
 | V1–8 | Sample playback, preset bank | 4-bit (0–15), scales channel output | Sample selected via the `duty` array; a `trig` array restarts the sample. Every voice accepts drums (style choice: SNES kits were samples like anything else). |
 
-Pitch: the SPC pitch register. `pitch = round(4096 × freq / 261.6256)` (samples authored at C4), clamped to 14 bits — the authentic 4×-up limit — stored in the `period` array.
+Pitch: the SPC pitch register. `pitch = round(4096 × freq / 261.6256)` (samples authored at C4), clamped to 14 bits — the authentic 4×-up limit. In practice this tops out at B5 (MIDI 83); voice `midiRange` is capped there, and notes above it fold down an octave (same range-fold behavior as every other channel) rather than being clamped and dropped. The pitch value is stored in the `period` array.
 
 Every sample passes a gaussian-ish 3-tap FIR on playback. The sample bank (shared with the `sega` DAC lane) is generated procedurally and deterministically at load, 8-bit quantized for BRR-flavored warmth.
 

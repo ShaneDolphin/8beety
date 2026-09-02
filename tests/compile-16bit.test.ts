@@ -4,7 +4,7 @@ import { SEGA_PROFILE, SNES_PROFILE } from "../src/engine/chip-profiles";
 import type { ChipProfile } from "../src/engine/chip-profiles";
 import { SAMPLED_DRUM_INDEX, sampledDrumFor } from "../src/engine/drums";
 import { SAMPLE_INDEX } from "../src/audio/apu-worklet";
-import { spcPitch, ymPack } from "../src/engine/pitch";
+import { midiToFreq, spcPitch, ymPack } from "../src/engine/pitch";
 import type { Project, TrackArrangement } from "../src/engine/project";
 import type { Note, Song, SourceTrack } from "../src/engine/song";
 
@@ -125,5 +125,19 @@ describe("compile for 16-bit chips", () => {
     const { script } = compile(song, project, SNES_PROFILE);
     const trigs = Array.from(script.channels[0].trig ?? []).filter((x) => x === 1).length;
     expect(trigs).toBe(2);
+  });
+  it("snes: a note above B5 (MIDI 83) folds down an octave instead of vanishing, and warns", () => {
+    const song = makeSong([{ tick: 0, durationTicks: PPQ, midi: 96, velocity: 100 }]); // C7
+    const project = makeProjectShape("snes", [
+      makeArrangement({ slots: ["v1"], instrumentId: "spc-strings" }),
+    ]);
+    const { script, warnings } = compile(song, project, SNES_PROFILE);
+    const ch = script.channels[0];
+    const on = ch.trig ? Array.from(ch.trig).indexOf(1) : -1;
+    expect(on).toBeGreaterThanOrEqual(0);
+    // 96 is 13 semitones above the range ceiling (83); folds down two octaves to 72 (C5).
+    expect(ch.period[on]).toBe(spcPitch(midiToFreq(72)));
+    expect(ch.period[on]).toBeGreaterThan(0);
+    expect(warnings.some((w) => /octave/i.test(w.message))).toBe(true);
   });
 });

@@ -235,7 +235,7 @@ function TrackRow({ arr, src, index }: { arr: TrackArrangement; src: SourceTrack
         </>
       )}
 
-      {chip === "gb" && arr.slots.length > 0 && (
+      {profile.stereo && arr.slots.length > 0 && (
         <select
           value={arr.pan ?? 3}
           title="Stereo pan (hard L / both / hard R)"

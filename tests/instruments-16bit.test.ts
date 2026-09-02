@@ -39,4 +39,14 @@ describe("remapForChip across four chips", () => {
     expect(t.slots).toEqual(["v3"]);
     expect(t.instrumentId).toBe("spc-bass");
   });
+  it("nes -> gb keeps thin-lead on p2 (still valid on pulse; not flattened to square-lead)", () => {
+    const [t] = remapForChip([track(["p2"], "thin-lead")], "gb");
+    expect(t.slots).toEqual(["p2"]);
+    expect(t.instrumentId).toBe("thin-lead");
+  });
+  it("nes -> gb keeps pulse-bass on a pulse slot (not reassigned to wave-bass)", () => {
+    const [t] = remapForChip([track(["p2"], "pulse-bass")], "gb");
+    expect(t.slots).toEqual(["p2"]);
+    expect(t.instrumentId).toBe("pulse-bass");
+  });
 });

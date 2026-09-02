@@ -499,11 +499,15 @@ const FM_ALGS: { carriers: number[]; routes: [number, number][] }[] = [
   { carriers: [0, 1, 2, 3], routes: [] },
 ];
 
+const ENV_SILENT = 1e-3; // envelope level below which a release is inaudible
+
 export class FmChannel {
   private readonly dt: number;
   private readonly ops = [new FmOperator(), new FmOperator(), new FmOperator(), new FmOperator()];
   private fb1 = 0; // op0 previous output for feedback
   private held = false;
+  private everKeyedOn = false; // guards against sounding before the first key-on
+  private lastFreqPacked = 0; // remembered so release can keep sounding once period drops to 0
 
   constructor(sampleRate: number) {
     this.dt = 1 / sampleRate;
@@ -514,13 +518,22 @@ export class FmChannel {
     if (trig && volume > 0) {
       for (const o of this.ops) o.keyOn();
       this.held = true;
+      this.everKeyedOn = true;
     }
     if (volume === 0 && this.held) {
       for (const o of this.ops) o.keyOff();
       this.held = false;
     }
-    if (packedFreq === 0) return 0;
-    const freq = (packedFreq & 0x7ff) * 2 ** ((packedFreq >> 11) - 1) * (7670453 / (144 * 2 ** 20));
+    if (packedFreq !== 0) this.lastFreqPacked = packedFreq;
+    if (!this.everKeyedOn) return 0;
+    // The compiler leaves period at 0 once a note is off (no sustained
+    // register to read); keep synthesizing at the last sounded frequency
+    // until every operator's release envelope has actually decayed, so the
+    // release stage (and the release-gain-15 quirk below) is audible.
+    if (packedFreq === 0 && this.ops.every((o) => o.env < ENV_SILENT)) return 0;
+    const freqSource = packedFreq !== 0 ? packedFreq : this.lastFreqPacked;
+    if (freqSource === 0) return 0;
+    const freq = (freqSource & 0x7ff) * 2 ** ((freqSource >> 11) - 1) * (7670453 / (144 * 2 ** 20));
     const alg = FM_ALGS[patch.algorithm & 7];
     const outs = [0, 0, 0, 0];
     let mix = 0;

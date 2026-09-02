@@ -1,6 +1,6 @@
 import { PROFILES, type PlayableChip } from "./chip-profiles";
 import type { FrameScript } from "./frame-script";
-import { presetsForKind } from "./instruments";
+import { getPreset, presetsForKind } from "./instruments";
 import type { TrackArrangement } from "./project";
 
 // §7.4: dropping a track onto an occupied slot swaps them. The dropped track
@@ -70,6 +70,10 @@ function mapInstrument(
   targetKind: ReturnType<typeof channelKind>,
 ): string {
   if (targetKind === null) return instrumentId; // track ends up unassigned: leave it be
+  // The instrument is still valid on the mapped slot's kind (e.g. a
+  // same-kind move, or a role table would otherwise flatten a preset that
+  // actually fits) — keep the user's choice instead of reassigning it.
+  if (getPreset(instrumentId).kinds.includes(targetKind)) return instrumentId;
   if (BASS_IDS.has(instrumentId)) return BASS_BY_CHIP[chip];
   if (LEAD_IDS.has(instrumentId)) return LEAD_BY_CHIP[chip];
   return presetsForKind(targetKind)[0]?.id ?? instrumentId;

@@ -88,9 +88,12 @@ export const SEGA_PROFILE: ChipProfile = {
   ],
 };
 
+// spcPitch caps at the 14-bit pitch register (0x3fff), which tops out at B5
+// (MIDI 83); notes above that fold down an octave via the compiler's normal
+// range-fold machinery (renderStream in compile.ts) instead of vanishing.
 const spcVoice = (n: number): ChannelDef => ({
   id: `v${n}`, label: `Voice ${n}`, kind: "sample", hasVolume: true,
-  midiRange: [24, 108], acceptsDrums: true,
+  midiRange: [24, 83], acceptsDrums: true,
 });
 
 export const SNES_PROFILE: ChipProfile = {

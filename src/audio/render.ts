@@ -1,6 +1,14 @@
 import apuWorkletUrl from "./apu-worklet.ts?worker&url";
+import { profileFor } from "../engine/chip-profiles";
 import type { FrameScript } from "../engine/frame-script";
 import type { ApuMessage, ApuReport } from "./messages";
+
+// Every stereo-capable chip profile (gb, sega, snes) renders two channels;
+// mono chips (nes) render one. Pulled out so the decision is unit-testable
+// without needing a real OfflineAudioContext.
+export function channelCountForChip(chip: FrameScript["chip"]): 1 | 2 {
+  return profileFor(chip).stereo ? 2 : 1;
+}
 
 // §9.3: offline render through the exact same worklet as realtime playback.
 // The "loaded" ack matters: port messages posted right before startRendering
@@ -13,7 +21,7 @@ export async function renderScript(
   const loopTwiceFade = opts?.loopTwiceFade ?? false;
   const seconds = script.frameCount / 60;
   const totalSamples = Math.ceil(seconds * (loopTwiceFade ? 2 : 1) * sampleRate);
-  const channelCount = script.chip === "gb" ? 2 : 1;
+  const channelCount = channelCountForChip(script.chip);
 
   const ctx = new OfflineAudioContext(channelCount, totalSamples, sampleRate);
   await ctx.audioWorklet.addModule(apuWorkletUrl);

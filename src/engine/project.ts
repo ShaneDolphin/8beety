@@ -30,7 +30,7 @@ export type TrackArrangement = {
   mute: boolean;
   solo: boolean;
   layerMode?: LayerMode; // applies when two pulse slots + top/bottom (§7.6)
-  pan?: 0 | 1 | 2 | 3; // gb only: 1 = L, 2 = R, 3 = both (default)
+  pan?: 0 | 1 | 2 | 3; // stereo chips only (gb/sega/snes): 1 = L, 2 = R, 3 = both (default)
   tweaks?: InstrumentTweaks; // §5 minimal tweaks over the preset
   regions?: Region[]; // optional per-section overrides (M7)
 };

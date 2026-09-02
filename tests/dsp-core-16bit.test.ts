@@ -48,8 +48,9 @@ describe("ApuCore 16-bit chips", () => {
     const core = new ApuCore(SR);
     core.load(s);
     core.play();
-    const during = rms(core, Math.round(SR * 0.4));
-    const tail = rms(core, Math.round(SR * 0.2)); // right after the 0.5s note
+    const during = rms(core, Math.round(SR * 0.4)); // 0.0s–0.4s, while the note sounds
+    rms(core, Math.round(SR * 0.1)); // discard 0.4s–0.5s: still the tail of the note itself
+    const tail = rms(core, Math.round(SR * 0.2)); // 0.5s–0.7s, entirely after the note ends
     expect(during).toBeGreaterThan(0.005);
     expect(tail).toBeGreaterThan(0.0005); // echo audible
   });
