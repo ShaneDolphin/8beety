@@ -93,11 +93,29 @@ PRESETS.push(
   { id: "organ", name: "Organ", kinds: ["wave"], volume: sustain(15), duty: sustain(2) },
 );
 
-// Minimal presets for the 16-bit chips (Task 7 adds the full set). `duty`
-// here selects the patch/sample bank index (0), not a pulse duty cycle.
+// 16-bit chips (Sega YM2612 FM patches, SNES SPC700 sample bank). `duty`
+// here selects the patch/sample bank index, not a pulse duty cycle.
+const pluckDecay: Macro = { values: [15, 13, 11, 9, 8, 8, 8, 8] };
+
 PRESETS.push(
   { id: "fm-epiano", name: "FM E.Piano", kinds: ["fm"], volume: sustain(12), duty: sustain(0) },
+  { id: "fm-bass", name: "FM Bass", kinds: ["fm"], volume: sustain(14), duty: sustain(1) },
+  { id: "fm-brass", name: "FM Brass", kinds: ["fm"], volume: sustain(12), duty: sustain(2) },
+  { id: "fm-bell", name: "FM Bell", kinds: ["fm"], volume: sustain(12), duty: sustain(3) },
+  { id: "fm-lead", name: "FM Lead", kinds: ["fm"], volume: sustain(12), duty: sustain(4) },
+  { id: "fm-organ", name: "FM Organ", kinds: ["fm"], volume: sustain(12), duty: sustain(5) },
+  { id: "fm-strings", name: "FM Strings", kinds: ["fm"], volume: sustain(12), duty: sustain(6) },
+  { id: "fm-pluck", name: "FM Pluck", kinds: ["fm"], volume: pluckDecay, duty: sustain(7) },
+);
+
+PRESETS.push(
   { id: "spc-strings", name: "Strings", kinds: ["sample"], volume: sustain(12), duty: sustain(0) },
+  { id: "spc-epiano", name: "E.Piano", kinds: ["sample"], volume: sustain(12), duty: sustain(1) },
+  { id: "spc-brass", name: "Brass", kinds: ["sample"], volume: sustain(12), duty: sustain(2) },
+  { id: "spc-flute", name: "Flute", kinds: ["sample"], volume: sustain(12), duty: sustain(3) },
+  { id: "spc-harp", name: "Harp", kinds: ["sample"], volume: sustain(12), duty: sustain(4) },
+  { id: "spc-bass", name: "SPC Bass", kinds: ["sample"], volume: sustain(14), duty: sustain(5) },
+  { id: "spc-choir", name: "Choir", kinds: ["sample"], volume: sustain(12), duty: sustain(6) },
 );
 
 export function getPreset(id: string): Instrument {

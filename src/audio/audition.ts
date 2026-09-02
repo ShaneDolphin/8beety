@@ -1,5 +1,5 @@
 import { ApuCore } from "./apu-worklet";
-import { PROFILES } from "../engine/chip-profiles";
+import { PROFILES, type PlayableChip } from "../engine/chip-profiles";
 import { compile } from "../engine/compile";
 import type { Project } from "../engine/project";
 import type { Song } from "../engine/song";
@@ -11,7 +11,7 @@ export function auditionInstrument(
   ctx: AudioContext,
   instrumentId: string,
   slotId: string,
-  chip: "nes" | "gb",
+  chip: PlayableChip,
 ): void {
   const song: Song = {
     name: "audition",
@@ -60,7 +60,7 @@ export function auditionInstrument(
   const { script } = compile(song, project, PROFILES[chip]);
   const sampleRate = ctx.sampleRate;
   const samples = Math.ceil((script.frameCount / 60) * sampleRate);
-  const stereo = chip === "gb";
+  const stereo = PROFILES[chip].stereo;
   const core = new ApuCore(sampleRate);
   core.load(script);
   core.play();

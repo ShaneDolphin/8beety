@@ -1,5 +1,11 @@
+import { presetsForKind } from "./instruments";
 import type { Song, SourceTrack } from "./song";
 import type { TrackArrangement } from "./project";
+
+// Falls back to the literal id if a kind ever ends up with no presets, so
+// this never hands out an instrument the compiler can't resolve.
+const defaultInstrumentFor = (kind: "pulse" | "triangle", fallback: string): string =>
+  presetsForKind(kind)[0]?.id ?? fallback;
 
 function meanPitch(t: SourceTrack): number {
   return t.notes.reduce((s, n) => s + n.midi, 0) / t.notes.length;
@@ -11,7 +17,7 @@ function baseArrangement(t: SourceTrack): TrackArrangement {
     sourceIndex: t.index,
     name: t.name,
     slots: [],
-    instrumentId: "square-lead",
+    instrumentId: defaultInstrumentFor("pulse", "square-lead"),
     polyMode: t.maxPolyphony > 2 ? "bottom" : "top",
     arpFramesPerStep: 1,
     octaveShift: 0,
@@ -55,7 +61,7 @@ export function autoArrange(song: Song): { tracks: TrackArrangement[]; assignedC
   if (lead) {
     const a = byIndex.get(lead.index)!;
     a.slots = ["p1"];
-    a.instrumentId = "square-lead";
+    a.instrumentId = defaultInstrumentFor("pulse", "square-lead");
     a.polyMode = "top";
     taken.add(lead.index);
   }
@@ -65,7 +71,7 @@ export function autoArrange(song: Song): { tracks: TrackArrangement[]; assignedC
   if (bass) {
     const a = byIndex.get(bass.index)!;
     a.slots = ["tri"];
-    a.instrumentId = "tri-bass";
+    a.instrumentId = defaultInstrumentFor("triangle", "tri-bass");
     a.polyMode = "bottom";
     taken.add(bass.index);
   }
