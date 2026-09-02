@@ -162,7 +162,7 @@ export function drawGbShell(
   g.strokeRect(sc.x - 4 * s, sc.y - 4 * s, sc.w + 8 * s, sc.h + 8 * s);
 
   // Project title on the bottom band of the bezel.
-  const clean = title.replace(/\.midi?$/i, "").toUpperCase();
+  const clean = title.replace(/\.midi?$/i, "").slice(0, 32).toUpperCase();
   let size = 30;
   g.font = font(size, true);
   while (size > 14 && g.measureText(clean).width > bz.w - 80 * s) {

@@ -4,6 +4,13 @@ import { computeSnesLayout, SNES_VIEW } from "../src/viz/snes-shell";
 const W = 720;
 const H = 1280;
 
+function luminance(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function within(inner: { x: number; y: number; w: number; h: number }, outer: {
   x: number; y: number; w: number; h: number;
 }): boolean {
@@ -51,5 +58,7 @@ describe("SNES_VIEW", () => {
     expect(SNES_VIEW).toHaveLength(4);
     expect(new Set(SNES_VIEW).size).toBe(4);
     for (const c of SNES_VIEW) expect(c).toMatch(/^#[0-9a-f]{6}$/i);
+    const lums = SNES_VIEW.map(luminance);
+    for (let i = 1; i < lums.length; i++) expect(lums[i]).toBeGreaterThan(lums[i - 1]);
   });
 });

@@ -105,7 +105,7 @@ export function drawSnesShell(
   g.strokeStyle = "#6f5fb0";
   g.strokeRect(label.x, label.y, label.w, label.h);
 
-  const clean = title.replace(/\.midi?$/i, "").toUpperCase();
+  const clean = title.replace(/\.midi?$/i, "").slice(0, 32).toUpperCase();
   let size = 26;
   g.font = font(size, true);
   while (size > 10 && g.measureText(clean).width > label.w - 16 * s) {

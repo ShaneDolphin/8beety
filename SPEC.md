@@ -515,9 +515,10 @@ Layout: a single page, three horizontal bands.
 - Download WAV (options: 44.1/48 kHz, loop 2x + fade)
 - Download project JSON
 - Download arranged MIDI (the compiled output rendered back to MIDI, one track per channel, arpeggios written out as fast notes; useful for people who want to take it into a real DAW)
+- Download video (9:16 MP4 of the playthrough with chip-matched console art; see below)
 - Copy share link (project JSON compressed with `lz-string` into the URL fragment; the MIDI itself is embedded as base64 inside the project JSON when under 100 KB, else the share link warns that the recipient must supply the MIDI)
 
-The 9:16 video export's console art follows the chip: DMG handheld for nes/gb, console-on-the-bottom-third for snes/sega (see docs/superpowers/specs/2026-09-02-16bit-export-shells-design.md).
+The 9:16 video export's console art follows the chip: DMG handheld for nes/nes-vrc6/gb, console-on-the-bottom-third for snes/sega (see docs/superpowers/specs/2026-09-02-16bit-export-shells-design.md).
 
 ### 10.3 Visual style
 

@@ -131,7 +131,7 @@ export function drawGenesisShell(
   g.strokeStyle = "#c9a227";
   g.strokeRect(label.x, label.y, label.w, label.h);
 
-  const clean = title.replace(/\.midi?$/i, "").toUpperCase();
+  const clean = title.replace(/\.midi?$/i, "").slice(0, 32).toUpperCase();
   let size = 24;
   g.font = font(size, true);
   while (size > 10 && g.measureText(clean).width > label.w - 14 * s) {

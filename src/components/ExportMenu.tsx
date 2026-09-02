@@ -48,7 +48,8 @@ export default function ExportMenu() {
         44100,
         (f) => setBusy(`Recording ${Math.round(f * 100)}%`),
       );
-      download(blob, `${base}-gbview.${ext}`, blob.type);
+      const suffix = project.chip === "snes" ? "snesview" : project.chip === "sega" ? "segaview" : "gbview";
+      download(blob, `${base}-${suffix}.${ext}`, blob.type);
       showToast(`Video exported (.${ext}).`);
     } catch (err) {
       showToast(`Video export failed: ${String(err)}`);
