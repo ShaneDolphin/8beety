@@ -538,3 +538,143 @@ if (typeof AudioWorkletProcessor !== "undefined") {
 
   registerProcessor("apu", ApuProcessor);
 }
+
+// ---- SPC700 / sample playback ----
+// The bank is synthesized deterministically at 32000 Hz (the SPC's rate) with
+// 8-bit quantization for BRR-flavored grit. Melodic samples are authored at
+// C4 and loop; drums are one-shots. No assets, no Math.random.
+
+export type BankSample = { data: Float32Array; loopStart: number | null };
+
+export const SAMPLE_INDEX = {
+  strings: 0, epiano: 1, brass: 2, flute: 3, harp: 4, bass: 5, choir: 6,
+  kick: 7, snare: 8, hatClosed: 9, hatOpen: 10, crash: 11, tom: 12,
+} as const;
+
+const BANK_RATE = 32000;
+const C4 = 261.6256;
+
+const quantize8 = (x: number): number => Math.round(Math.max(-1, Math.min(1, x)) * 127) / 127;
+
+// Deterministic noise: tiny LCG, fixed seed.
+function makeNoise(len: number, seed: number): Float32Array {
+  let s = seed >>> 0;
+  const out = new Float32Array(len);
+  for (let i = 0; i < len; i++) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    out[i] = (s / 0xffffffff) * 2 - 1;
+  }
+  return out;
+}
+
+function additive(partials: [number, number][], len: number, loopStart: number | null, decay = 0): BankSample {
+  const data = new Float32Array(len);
+  let peak = 0;
+  for (let i = 0; i < len; i++) {
+    let v = 0;
+    const t = i / BANK_RATE;
+    for (const [harm, amp] of partials) v += amp * Math.sin(2 * Math.PI * C4 * harm * t);
+    v *= decay > 0 ? Math.exp(-t / decay) : 1;
+    data[i] = v;
+    peak = Math.max(peak, Math.abs(v));
+  }
+  for (let i = 0; i < len; i++) data[i] = quantize8((data[i] / peak) * 0.9);
+  return { data, loopStart };
+}
+
+function drum(len: number, seed: number, tone: number, noiseAmt: number, startHz: number, endHz: number, decay: number): BankSample {
+  const noise = makeNoise(len, seed);
+  const data = new Float32Array(len);
+  let phase = 0;
+  for (let i = 0; i < len; i++) {
+    const t = i / BANK_RATE;
+    const hz = startHz + (endHz - startHz) * (i / len);
+    phase += hz / BANK_RATE;
+    const env = Math.exp(-t / decay);
+    data[i] = quantize8((tone * Math.sin(2 * Math.PI * phase) + noiseAmt * noise[i]) * env * 0.9);
+  }
+  return { data, loopStart: null };
+}
+
+export function buildSampleBank(): BankSample[] {
+  const loopLen = Math.round((BANK_RATE / C4) * 8) * 4; // whole periods so loops click-free
+  return [
+    additive([[1, 0.6], [2, 0.5], [3, 0.35], [4, 0.2], [5, 0.12], [1.007, 0.4], [2.014, 0.25]], loopLen * 2, loopLen),      // strings
+    additive([[1, 1.0], [2, 0.15], [4, 0.3], [7, 0.12], [10, 0.05]], BANK_RATE, null, 0.6),                                    // epiano (one-shot)
+    additive([[1, 0.9], [2, 0.6], [3, 0.5], [4, 0.35], [5, 0.25], [6, 0.15]], loopLen * 2, loopLen),                          // brass
+    additive([[1, 1.0], [2, 0.08], [3, 0.03]], loopLen * 2, loopLen),                                                          // flute
+    additive([[1, 1.0], [2, 0.4], [3, 0.2], [5, 0.1]], BANK_RATE / 2, null, 0.25),                                             // harp (one-shot)
+    additive([[0.5, 1.0], [1, 0.6], [1.5, 0.2], [2, 0.3]], loopLen * 2, loopLen),                                              // bass
+    additive([[1, 0.7], [1.01, 0.5], [0.99, 0.5], [2, 0.2], [3, 0.15]], loopLen * 2, loopLen),                                 // choir
+    drum(BANK_RATE / 4, 1, 1.0, 0.25, 120, 40, 0.06),   // kick
+    drum(BANK_RATE / 4, 2, 0.3, 1.0, 220, 180, 0.05),   // snare
+    drum(BANK_RATE / 16, 3, 0.0, 1.0, 0, 0, 0.012),     // hatClosed
+    drum(BANK_RATE / 4, 4, 0.0, 1.0, 0, 0, 0.07),       // hatOpen
+    drum(BANK_RATE, 5, 0.05, 1.0, 0, 0, 0.3),           // crash
+    drum(BANK_RATE / 4, 6, 1.0, 0.3, 180, 90, 0.08),    // tom
+  ];
+}
+
+export class SampleVoice {
+  private readonly step: number; // bank-rate samples per output sample at pitch 0x1000
+  private readonly bank: BankSample[];
+  private pos = -1; // -1 = not playing
+  private index = 0;
+  private g0 = 0; private g1 = 0; // gaussian-ish history
+  private holdCounter = 0; private holdValue = 0;
+
+  constructor(sampleRate: number, bank: BankSample[]) {
+    this.step = BANK_RATE / sampleRate;
+    this.bank = bank;
+  }
+
+  sample(pitch: number, volume: number, sampleIndex: number, trig: boolean, dacMode: boolean): number {
+    if (trig && volume > 0) { this.pos = 0; this.index = sampleIndex; }
+    if (this.pos < 0) return 0;
+    const s = this.bank[this.index];
+    if (!s) return 0;
+    this.pos += this.step * (pitch / 0x1000);
+    if (this.pos >= s.data.length) {
+      if (s.loopStart === null) { this.pos = -1; return 0; }
+      this.pos = s.loopStart + ((this.pos - s.loopStart) % (s.data.length - s.loopStart));
+    }
+    let v = s.data[Math.floor(this.pos)];
+    if (dacMode) {
+      // 8-bit @ ~11kHz sample-and-hold: the Genesis DAC drum grit.
+      if (this.holdCounter <= 0) { this.holdValue = quantize8(v); this.holdCounter = (BANK_RATE / 11025) / (this.step * (pitch / 0x1000)); }
+      this.holdCounter -= 1;
+      v = this.holdValue;
+    } else {
+      // SNES gaussian-flavored 3-tap smoothing.
+      const y = 0.25 * this.g0 + 0.5 * this.g1 + 0.25 * v;
+      this.g0 = this.g1; this.g1 = v; v = y;
+    }
+    return v * volume;
+  }
+}
+
+export class EchoBus {
+  private readonly buf: Float32Array[];
+  private readonly len: number;
+  private readonly sampleRate: number;
+  private idx = 0;
+  private lpL = 0; private lpR = 0;
+
+  constructor(sampleRate: number) {
+    this.sampleRate = sampleRate;
+    this.len = Math.round(sampleRate * 0.096);
+    this.buf = [new Float32Array(this.len), new Float32Array(this.len)];
+  }
+
+  process(l: number, r: number): [number, number] {
+    const dl = this.buf[0][this.idx];
+    const dr = this.buf[1][this.idx];
+    const b = 1 - Math.exp((-2 * Math.PI * 5000) / this.sampleRate); // one-pole coeff at bus sample rate
+    this.lpL += b * (dl - this.lpL);
+    this.lpR += b * (dr - this.lpR);
+    this.buf[0][this.idx] = l + this.lpL * 0.4;
+    this.buf[1][this.idx] = r + this.lpR * 0.4;
+    this.idx = (this.idx + 1) % this.len;
+    return [l + this.lpL * 0.25, r + this.lpR * 0.25];
+  }
+}
