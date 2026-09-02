@@ -129,22 +129,53 @@ The Konami VRC6 mapper (Castlevania III, Japanese release) added two more pulse 
 
 ```ts
 type ChipProfile = {
-  id: "nes" | "gb" | "nes-vrc6";
+  id: "nes" | "gb" | "nes-vrc6" | "sega" | "snes";
   name: string;
   stereo: boolean;
   channels: ChannelDef[];
 };
 
 type ChannelDef = {
-  id: string;                 // "p1", "p2", "tri", "noise", "dmc", "wave", "saw"
+  id: string;                 // "p1", "p2", "tri", "noise", "dmc", "wave", "saw", "fm1"..."fm5", "dac", "v1"..."v8"
   label: string;              // "Pulse 1"
-  kind: "pulse" | "triangle" | "noise" | "dpcm" | "wave" | "saw";
+  kind: "pulse" | "triangle" | "noise" | "dpcm" | "wave" | "saw" | "fm" | "sample";
   hasVolume: boolean;
   duties?: number[];          // fraction of period, e.g. [0.125, 0.25, 0.5, 0.75]
   midiRange: [number, number];
-  acceptsDrums: boolean;      // noise, dpcm, and triangle (for kick) are true
+  acceptsDrums: boolean;      // noise, dpcm, and triangle (for kick) are true; also fm/sample drum lanes
 };
 ```
+
+### 4.5 Sega Genesis YM2612 (profile id: `sega`)
+
+Six channels, stereo output (per-channel L/R enable, same pan encoding as Game Boy).
+
+| Channel | Kind | Volume | Notes |
+|---|---|---|---|
+| FM 1–5 | 4-operator FM synthesis, 8 algorithms | 4-bit (0–15), scales channel output | Preset patch bank selected via the `duty` array (same trick as GB wave presets); a `trig` array marks note-on frames to key the FM envelopes. |
+| DAC | Sample (FM ch6 in DAC mode) | 4-bit | 8-bit drum samples, ~11 kHz sample-and-hold, for Genesis-style percussion grit. Drums only. |
+
+Pitch: fnum/block, exactly like the chip. `freq = fnum × 2^(block−1) × 7670453 / (144 × 2^20)` (NTSC master clock); the compiler packs `(block << 11) | fnum` into the `period` array, so the fnum quantization is the chip's authentic detune.
+
+Post-filter: a gentle one-pole low-pass around 8 kHz.
+
+Style model; see docs/superpowers/specs/2026-09-01-16bit-chips-design.md for rationale (simplified linear operator order, linear-segment envelopes rather than rate-scaled dB).
+
+### 4.6 Super Nintendo SPC700 (profile id: `snes`)
+
+Eight voices, stereo, all sample playback.
+
+| Channel | Kind | Volume | Notes |
+|---|---|---|---|
+| V1–8 | Sample playback, preset bank | 4-bit (0–15), scales channel output | Sample selected via the `duty` array; a `trig` array restarts the sample. Every voice accepts drums (style choice: SNES kits were samples like anything else). |
+
+Pitch: the SPC pitch register. `pitch = round(4096 × freq / 261.6256)` (samples authored at C4), clamped to 14 bits — the authentic 4×-up limit — stored in the `period` array.
+
+Every sample passes a gaussian-ish 3-tap FIR on playback. The sample bank (shared with the `sega` DAC lane) is generated procedurally and deterministically at load, 8-bit quantized for BRR-flavored warmth.
+
+Echo: a global bus, fixed in v1 — ~96 ms delay, ~0.4 feedback through a one-pole low-pass around 5 kHz, ~0.25 wet mix, stereo.
+
+Style model; see docs/superpowers/specs/2026-09-01-16bit-chips-design.md for rationale (echo and envelope behavior approximated, not a BRR/DSP-accurate emulation).
 
 ---
 
@@ -488,7 +519,7 @@ Layout: a single page, three horizontal bands.
 
 ### 10.3 Visual style
 
-Dense, utilitarian, dark by default. Monospace numerals for BPM and bars. Pixel-art accents are fine in the logo and rack cards; do not pixelate body text. Do not use or draw any Nintendo, Game Boy, or NES logos, characters, or trade dress. The Game Boy profile can be tinted olive-green and the NES profile gray-and-red as a nod without copying any hardware design.
+Dense, utilitarian, dark by default. Monospace numerals for BPM and bars. Pixel-art accents are fine in the logo and rack cards; do not pixelate body text. Do not use or draw any Nintendo, Sega, Game Boy, NES, SNES, or Genesis logos, characters, or trade dress. The Game Boy profile can be tinted olive-green, the NES profile gray-and-red, the Sega Genesis profile blue, and the SNES profile purple as a nod without copying any hardware design.
 
 ---
 

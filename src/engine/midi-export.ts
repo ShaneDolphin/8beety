@@ -1,19 +1,27 @@
 import { Midi } from "@tonejs/midi";
 import type { FrameScript } from "./frame-script";
-import { gbPulseFreq, gbWaveFreq, nesPulseFreq, nesTriangleFreq } from "./pitch";
+import { gbPulseFreq, gbWaveFreq, nesPulseFreq, nesTriangleFreq, spcFreq, ymFreq } from "./pitch";
 
 // §10.2: render the compiled output back to MIDI, one track per channel,
 // arpeggios written out as fast notes — for people who want a real DAW.
 
+// sega fm lanes ("fm1".."fm5") are ymPack-encoded; sega's dac lane and every
+// snes voice ("v1".."v8") are spcPitch-encoded — see chip-profiles.ts.
 function periodToMidi(chip: FrameScript["chip"], channelId: string, period: number): number {
   const freq =
-    channelId === "tri"
-      ? nesTriangleFreq(period)
-      : channelId === "wave"
-        ? gbWaveFreq(period)
-        : chip === "gb"
-          ? gbPulseFreq(period)
-          : nesPulseFreq(period);
+    chip === "sega"
+      ? channelId.startsWith("fm")
+        ? ymFreq(period)
+        : spcFreq(period)
+      : chip === "snes"
+        ? spcFreq(period)
+        : channelId === "tri"
+          ? nesTriangleFreq(period)
+          : channelId === "wave"
+            ? gbWaveFreq(period)
+            : chip === "gb"
+              ? gbPulseFreq(period)
+              : nesPulseFreq(period);
   return Math.max(0, Math.min(127, Math.round(69 + 12 * Math.log2(freq / 440))));
 }
 

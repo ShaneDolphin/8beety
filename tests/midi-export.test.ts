@@ -2,6 +2,7 @@ import { Midi } from "@tonejs/midi";
 import { describe, expect, it } from "vitest";
 import { exportArrangedMidi } from "../src/engine/midi-export";
 import type { ChannelFrames, FrameScript } from "../src/engine/frame-script";
+import { spcPitch, ymPack } from "../src/engine/pitch";
 
 const N = 120;
 
@@ -15,7 +16,7 @@ function mk(id: string): ChannelFrames {
   };
 }
 
-function script(chip: "nes" | "gb", channels: ChannelFrames[]): FrameScript {
+function script(chip: FrameScript["chip"], channels: ChannelFrames[]): FrameScript {
   return { chip, fps: 60, frameCount: N, channels, barStarts: [0] };
 }
 
@@ -82,5 +83,38 @@ describe("exportArrangedMidi", () => {
     }
     const midi = new Midi(exportArrangedMidi(script("gb", [p1]), 120));
     expect(midi.tracks.flatMap((t) => t.notes)[0].midi).toBe(69);
+  });
+
+  it("uses the YM2612 fnum/block formula for sega fm lanes", () => {
+    const fm1 = mk("fm1");
+    const packed = ymPack(261.6256); // C4
+    for (let f = 0; f < 30; f++) {
+      fm1.period[f] = packed!;
+      fm1.volume[f] = 12;
+    }
+    const midi = new Midi(exportArrangedMidi(script("sega", [fm1]), 120));
+    expect(midi.tracks.flatMap((t) => t.notes)[0].midi).toBe(60);
+  });
+
+  it("uses the SPC700 pitch formula for sega's sample-encoded dac lane", () => {
+    const dac = mk("dac");
+    const pitch = spcPitch(261.6256); // C4
+    for (let f = 0; f < 30; f++) {
+      dac.period[f] = pitch!;
+      dac.volume[f] = 12;
+    }
+    const midi = new Midi(exportArrangedMidi(script("sega", [dac]), 120));
+    expect(midi.tracks.flatMap((t) => t.notes)[0].midi).toBe(60);
+  });
+
+  it("uses the SPC700 pitch formula for snes sample voices", () => {
+    const v1 = mk("v1");
+    const pitch = spcPitch(261.6256); // C4
+    for (let f = 0; f < 30; f++) {
+      v1.period[f] = pitch!;
+      v1.volume[f] = 12;
+    }
+    const midi = new Midi(exportArrangedMidi(script("snes", [v1]), 120));
+    expect(midi.tracks.flatMap((t) => t.notes)[0].midi).toBe(60);
   });
 });

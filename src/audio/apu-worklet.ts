@@ -390,7 +390,7 @@ export class ApuCore {
           const trig = (ch.trig?.[f] ?? 0) === 1 && this.samplesUntilFrame >= this.sampleRate / 60 - 1;
           const s = c < 5
             ? this.fm[c].sample(ch.period[f], ch.volume[f], ch.duty[f], trig)
-            : (this.dacVoice as SampleVoice).sample(ch.period[f] || 0x1000, ch.volume[f], ch.duty[f], trig, true) * 15;
+            : (this.dacVoice as SampleVoice).sample(ch.period[f] || 0x1000, ch.volume[f], ch.duty[f], trig, true);
           const pan = ch.pan[f];
           if (pan & 1) l += s;
           if (pan & 2) r += s;
@@ -404,7 +404,7 @@ export class ApuCore {
           const ch = this.script.channels[c];
           if (!ch) continue;
           const trig = (ch.trig?.[f] ?? 0) === 1 && this.samplesUntilFrame >= this.sampleRate / 60 - 1;
-          const s = this.voices[c].sample(ch.period[f] || 0x1000, ch.volume[f], ch.duty[f], trig, false) * 15;
+          const s = this.voices[c].sample(ch.period[f] || 0x1000, ch.volume[f], ch.duty[f], trig, false);
           const pan = ch.pan[f];
           if (pan & 1) l += s;
           if (pan & 2) r += s;
