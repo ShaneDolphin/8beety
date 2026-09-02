@@ -258,6 +258,13 @@ export class ApuCore {
   private readonly gbNoise: GbNoiseChannel;
   private readonly gbHpL: OnePoleHighPass;
   private readonly gbHpR: OnePoleHighPass;
+  private readonly fm: FmChannel[];
+  private readonly echo: EchoBus;
+  private readonly lp8kL: OnePoleLowPass;
+  private readonly lp8kR: OnePoleLowPass;
+  private bank: BankSample[] | null = null;
+  private voices: SampleVoice[] = [];
+  private dacVoice: SampleVoice | null = null;
 
   constructor(sampleRate: number) {
     this.sampleRate = sampleRate;
@@ -274,6 +281,22 @@ export class ApuCore {
     this.gbNoise = new GbNoiseChannel(sampleRate);
     this.gbHpL = new OnePoleHighPass(90, sampleRate);
     this.gbHpR = new OnePoleHighPass(90, sampleRate);
+    this.fm = Array.from({ length: 5 }, () => new FmChannel(sampleRate));
+    this.echo = new EchoBus(sampleRate);
+    this.lp8kL = new OnePoleLowPass(8000, sampleRate);
+    this.lp8kR = new OnePoleLowPass(8000, sampleRate);
+  }
+
+  // sega/snes both play through the sample bank (sega's DAC lane, snes's 8
+  // voices); it's a few hundred KB of Float32Arrays we don't want to build
+  // for nes/gb-only sessions, so it's constructed on first use.
+  private ensureBank(chip: FrameScript["chip"]): void {
+    if ((chip === "sega" || chip === "snes") && this.bank === null) {
+      const bank = buildSampleBank();
+      this.bank = bank;
+      this.voices = Array.from({ length: 8 }, () => new SampleVoice(this.sampleRate, bank));
+      this.dacVoice = new SampleVoice(this.sampleRate, bank);
+    }
   }
 
   load(script: FrameScript): void {
@@ -281,6 +304,7 @@ export class ApuCore {
     this.chip = script.chip;
     this.frame = 0;
     this.samplesUntilFrame = this.sampleRate / 60;
+    this.ensureBank(script.chip);
   }
 
   play(fromFrame?: number): void {
@@ -306,6 +330,7 @@ export class ApuCore {
     this.script = script;
     this.chip = script.chip;
     if (this.frame >= script.frameCount) this.frame = 0;
+    this.ensureBank(script.chip);
   }
 
   private advanceFrame(): void {
@@ -356,6 +381,37 @@ export class ApuCore {
         }
         outL[i] = this.gbHpL.process((l / 60) * 0.9);
         if (outR) outR[i] = this.gbHpR.process((r / 60) * 0.9);
+      } else if (this.chip === "sega") {
+        let l = 0;
+        let r = 0;
+        for (let c = 0; c < 6; c++) {
+          const ch = this.script.channels[c];
+          if (!ch) continue;
+          const trig = (ch.trig?.[f] ?? 0) === 1 && this.samplesUntilFrame >= this.sampleRate / 60 - 1;
+          const s = c < 5
+            ? this.fm[c].sample(ch.period[f], ch.volume[f], ch.duty[f], trig)
+            : (this.dacVoice as SampleVoice).sample(ch.period[f] || 0x1000, ch.volume[f], ch.duty[f], trig, true) * 15;
+          const pan = ch.pan[f];
+          if (pan & 1) l += s;
+          if (pan & 2) r += s;
+        }
+        outL[i] = this.lp8kL.process((l / 90) * 0.9);
+        if (outR) outR[i] = this.lp8kR.process((r / 90) * 0.9);
+      } else if (this.chip === "snes") {
+        let l = 0;
+        let r = 0;
+        for (let c = 0; c < 8; c++) {
+          const ch = this.script.channels[c];
+          if (!ch) continue;
+          const trig = (ch.trig?.[f] ?? 0) === 1 && this.samplesUntilFrame >= this.sampleRate / 60 - 1;
+          const s = this.voices[c].sample(ch.period[f] || 0x1000, ch.volume[f], ch.duty[f], trig, false) * 15;
+          const pan = ch.pan[f];
+          if (pan & 1) l += s;
+          if (pan & 2) r += s;
+        }
+        const [el, er] = this.echo.process(l / 120, r / 120);
+        outL[i] = el * 0.9;
+        if (outR) outR[i] = er * 0.9;
       } else {
         const s1 = this.pulse1.sample(ch0.period[f], ch0.volume[f], ch0.duty[f]);
         const s2 = this.pulse2.sample(ch1.period[f], ch1.volume[f], ch1.duty[f]);
