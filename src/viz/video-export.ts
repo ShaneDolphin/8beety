@@ -1,6 +1,6 @@
 import type { FrameScript } from "../engine/frame-script";
 import { drawGbFrame } from "./gb-render";
-import { drawGbShell } from "./gb-shell";
+import { shellFor } from "./shells";
 import type { Lane } from "./lanes";
 
 // 9:16 Game Boy View video: the offline-rendered song audio plays into a
@@ -43,7 +43,8 @@ export async function exportGbVideo(
     canvas.remove();
     throw new Error("canvas unavailable");
   }
-  const screen = drawGbShell(shellCtx, W, H, title);
+  const { drawShell, palette } = shellFor(script.chip);
+  const screen = drawShell(shellCtx, W, H, title);
   const drawFrame = (frame: number): void => {
     g.drawImage(shell, 0, 0);
     g.save();
@@ -51,7 +52,10 @@ export async function exportGbVideo(
     g.rect(screen.x, screen.y, screen.w, screen.h);
     g.clip();
     g.translate(screen.x, screen.y);
-    drawGbFrame(g, script, lanes, frame, screen.w, screen.h, title, { headerTitle: false });
+    drawGbFrame(g, script, lanes, frame, screen.w, screen.h, title, {
+      headerTitle: false,
+      palette,
+    });
     g.restore();
   };
   drawFrame(0);

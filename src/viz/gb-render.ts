@@ -63,9 +63,9 @@ export function drawGbFrame(
   w: number,
   h: number,
   title: string,
-  opts?: { headerTitle?: boolean },
+  opts?: { headerTitle?: boolean; palette?: readonly [string, string, string, string] },
 ): void {
-  const [c0, c1, c2, c3] = DMG;
+  const [c0, c1, c2, c3] = opts?.palette ?? DMG;
   const px = Math.max(2, Math.floor(Math.min(w / 160, h / 160)));
   g.imageSmoothingEnabled = false;
   g.fillStyle = c0;
