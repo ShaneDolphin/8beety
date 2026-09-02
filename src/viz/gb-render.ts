@@ -4,6 +4,8 @@ import {
   gbWaveFreq,
   nesPulseFreq,
   nesTriangleFreq,
+  spcFreq,
+  ymFreq,
 } from "../engine/pitch";
 import { NOTE_NAMES } from "../theory/theory";
 import type { Lane } from "./lanes";
@@ -34,15 +36,20 @@ function periodRange(ch: ChannelFrames): [number, number] {
   return range;
 }
 
-function noteName(chip: FrameScript["chip"], channelIndex: number, period: number): string {
+// exported for testing only; not part of the module's public drawing API
+export function noteName(chip: FrameScript["chip"], channelIndex: number, period: number): string {
   const freq =
-    channelIndex === 2
-      ? chip === "gb"
-        ? gbWaveFreq(period)
-        : nesTriangleFreq(period)
-      : chip === "gb"
-        ? gbPulseFreq(period)
-        : nesPulseFreq(period);
+    chip === "sega"
+      ? ymFreq(period)
+      : chip === "snes"
+        ? spcFreq(period)
+        : channelIndex === 2
+          ? chip === "gb"
+            ? gbWaveFreq(period)
+            : nesTriangleFreq(period)
+          : chip === "gb"
+            ? gbPulseFreq(period)
+            : nesPulseFreq(period);
   const midi = Math.round(69 + 12 * Math.log2(freq / 440));
   if (midi < 0 || midi > 127) return "";
   return NOTE_NAMES[((midi % 12) + 12) % 12] + String(Math.floor(midi / 12) - 1);
